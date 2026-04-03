@@ -1,11 +1,6 @@
 # ShHESH-PROHOR
 A short top-down 2D browser game built for a game jam. Players protect a family through one tense night inside a small home, making careful decisions based on uncertain hints from TV, radio, phone, and distant sounds.
 
-
-# Shesh Prohor
-
-**Shesh Prohor** is a short 2D top-down browser game built for a game jam.
-
 The game follows an ordinary family spending one tense night inside their home during an unnamed conflict. The player must observe sounds, check TV/radio/phone for hints, decide when to move family members, and try to keep everyone safe until morning.
 
 The game focuses on atmosphere, uncertainty, care, and emotional storytelling rather than combat or spectacle.
