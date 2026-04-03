@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shesh Prohor - Room</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@300;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="game">
+    <div class="hud">
+      <div class="hud-title">Shesh Prohor</div>
+      <div class="hud-sub">Use WASD or arrow keys to move. Shift to sprint.</div>
+    </div>
+
+    <div class="room" id="room">
+      <div class="player" id="player" aria-label="Maya"></div>
+    </div>
+  </div>
+
+  <script src="src/config/playerConfig.js"></script>
+  <script src="src/controllers/inputController.js"></script>
+  <script src="src/controllers/movementController.js"></script>
+  <script src="src/renderers/playerRenderer.js"></script>
+  <script src="src/core/game.js"></script>
+  <script src="src/main.js"></script>
+</body>
+</html>
