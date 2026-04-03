@@ -1,0 +1,79 @@
+﻿:root {
+  --void: #05050b;
+  --deep: #0b0b16;
+  --text: #e7e7f5;
+  --muted: #8b8ba6;
+  --blood2: #ff445c;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: radial-gradient(1200px 800px at 20% 10%, #1a1b32 0%, #0b0b18 40%, var(--void) 100%);
+  color: var(--text);
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.game {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  gap: 16px;
+  padding: 20px;
+}
+
+.hud {
+  text-align: center;
+}
+
+.hud-title {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: clamp(28px, 6vw, 52px);
+  letter-spacing: 0.08em;
+}
+
+.hud-sub {
+  font-family: "Crimson Pro", serif;
+  font-style: italic;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.room {
+  width: min(92vw, 720px);
+  aspect-ratio: 650 / 728;
+  background-image: url("assets/images/backgrounds/middlefloor.png");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  position: relative;
+  overflow: hidden;
+}
+
+.player {
+  position: absolute;
+  left: 50%;
+  top: 60%;
+  transform: translate(-50%, -50%);
+  background-image: url("assets/images/characters/maya.png");
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  z-index: 2;
+}
+
+
