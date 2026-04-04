@@ -114,25 +114,10 @@ body {
 .room {
   width: min(92vw, 720px);
   aspect-ratio: 650 / 728;
-  background-image: url("assets/images/backgrounds/middlefloor.png");
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
-  position: relative;
-  overflow: hidden;
-}
-
-.player {
-  position: absolute;
-  left: 50%;
-  top: 60%;
-  transform: translate(-50%, -50%);
-  background-image: url("assets/images/characters/maya.png");
-  background-repeat: no-repeat;
-  image-rendering: pixelated;
-  z-index: 2;
+  display: block;
+  background: #0b0b16;
 }
 
 

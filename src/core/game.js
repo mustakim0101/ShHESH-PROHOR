@@ -1,48 +1,40 @@
 (function () {
   function createGame(options) {
-    const room = options.room;
-    const player = options.player;
+    const canvas = options.canvas;
+    const context = canvas.getContext("2d");
     const sprite = { ...window.PlayerConfig.sprite };
     const input = window.InputController.createInputController(window);
     const roomRegistry = window.RoomRegistry;
+    const roomImages = {};
 
     let currentRoomId = "living-room";
     let position = { x: 0, y: 0 };
-    let roomBounds = null;
+    let roomBounds = { width: canvas.width, height: canvas.height };
     let lastTime = performance.now();
     let animationTime = 0;
     let frame = 0;
     let direction = 0;
+    let spriteImage = null;
+    let animationFrameId = 0;
 
     function getCurrentRoom() {
       return roomRegistry.getRoom(currentRoomId);
     }
 
-    function applyRoomVisuals() {
-      const currentRoom = getCurrentRoom();
-      if (!currentRoom) {
-        return;
-      }
-
-      room.style.backgroundImage = `url("${currentRoom.background}")`;
-      room.dataset.roomId = currentRoom.id;
-    }
-
     function updateRoomBounds() {
-      const rect = room.getBoundingClientRect();
+      roomBounds = { width: canvas.width, height: canvas.height };
       const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
-      roomBounds = { width: rect.width, height: rect.height };
       position = window.MovementController.clampPosition(position, roomBounds, spriteSize);
     }
 
-    function updateFrame() {
-      window.PlayerRenderer.setPlayerFrame(
-        player,
-        sprite,
-        window.PlayerConfig.animationColumns,
-        direction,
-        frame,
-      );
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const nextWidth = Math.max(320, Math.round(rect.width || canvas.width));
+      const nextHeight = Math.round((nextWidth * 728) / 650);
+
+      canvas.width = nextWidth;
+      canvas.height = nextHeight;
+      updateRoomBounds();
     }
 
     function updatePosition(dt) {
@@ -98,7 +90,6 @@
         }
 
         currentRoomId = gate.targetRoomId;
-        applyRoomVisuals();
         position = getSpawnPosition(gate.spawn, spriteSize);
         frame = 0;
         return;
@@ -111,6 +102,13 @@
       const xRatio = playerCenterX / roomBounds.width;
       const yRatio = playerCenterY / roomBounds.height;
       const threshold = gate.threshold || 24;
+
+      if (gate.area) {
+        return xRatio >= gate.area.x.start
+          && xRatio <= gate.area.x.end
+          && yRatio >= gate.area.y.start
+          && yRatio <= gate.area.y.end;
+      }
 
       if (gate.side === "left") {
         return position.x <= threshold && yRatio >= gate.range.start && yRatio <= gate.range.end;
@@ -146,15 +144,47 @@
       );
     }
 
+    function render() {
+      const currentRoom = getCurrentRoom();
+      const backgroundImage = currentRoom ? roomImages[currentRoom.id] : null;
+
+      window.PlayerRenderer.drawRoom(context, canvas, {
+        backgroundImage,
+      });
+      window.PlayerRenderer.drawPlayer(
+        context,
+        spriteImage,
+        sprite,
+        window.PlayerConfig.animationColumns,
+        direction,
+        frame,
+        position,
+      );
+    }
+
     function loop(now) {
       const dt = Math.min(0.05, (now - lastTime) / 1000);
       lastTime = now;
 
       updatePosition(dt);
-      window.PlayerRenderer.renderPlayerPosition(player, position);
-      updateFrame();
+      render();
 
-      requestAnimationFrame(loop);
+      animationFrameId = requestAnimationFrame(loop);
+    }
+
+    function loadRoomImages() {
+      const rooms = ["living-room", "kitchen", "children-room", "basement"];
+
+      rooms.forEach((roomId) => {
+        const roomConfig = roomRegistry.getRoom(roomId);
+        if (!roomConfig) {
+          return;
+        }
+
+        const image = new Image();
+        image.src = roomConfig.background;
+        roomImages[roomId] = image;
+      });
     }
 
     function init() {
@@ -163,17 +193,16 @@
       image.onload = () => {
         sprite.sheetW = image.width;
         sprite.sheetH = image.height;
+        spriteImage = image;
 
-        applyRoomVisuals();
-        window.PlayerRenderer.applyPlayerStyle(player, sprite);
-        updateRoomBounds();
+        loadRoomImages();
+        resizeCanvas();
 
         const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
         position = getSpawnPosition({ x: 0.5, y: 0.65 }, spriteSize);
 
-        updateFrame();
-        window.PlayerRenderer.renderPlayerPosition(player, position);
-        requestAnimationFrame(loop);
+        render();
+        animationFrameId = requestAnimationFrame(loop);
       };
 
       image.onerror = () => {
@@ -181,13 +210,14 @@
       };
 
       image.src = sprite.url;
-      window.addEventListener("resize", updateRoomBounds);
+      window.addEventListener("resize", resizeCanvas);
     }
 
     return {
       init,
       destroy() {
-        window.removeEventListener("resize", updateRoomBounds);
+        cancelAnimationFrame(animationFrameId);
+        window.removeEventListener("resize", resizeCanvas);
         input.dispose();
       },
     };

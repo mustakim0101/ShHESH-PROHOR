@@ -6,32 +6,58 @@
     };
   }
 
-  function applyPlayerStyle(player, sprite) {
-    const spriteSize = getSpriteSize(sprite);
-    player.style.width = `${spriteSize.width}px`;
-    player.style.height = `${spriteSize.height}px`;
-    player.style.backgroundImage = `url("${sprite.url}")`;
-    player.style.backgroundSize = `${sprite.sheetW * sprite.scale}px ${sprite.sheetH * sprite.scale}px`;
-  }
-
-  function setPlayerFrame(player, sprite, animationColumns, direction, frame) {
+  function getFrameSource(sprite, animationColumns, direction, frame) {
     const maxCols = animationColumns[direction] || sprite.cols;
     const safeFrame = frame % maxCols;
-    const x = safeFrame * sprite.frameW * sprite.scale;
     const row = Math.min(direction, sprite.rows - 1);
-    const y = row * sprite.frameH * sprite.scale;
-    player.style.backgroundPosition = `-${x}px -${y}px`;
+
+    return {
+      sx: safeFrame * sprite.frameW,
+      sy: row * sprite.frameH,
+      sw: sprite.frameW,
+      sh: sprite.frameH,
+    };
   }
 
-  function renderPlayerPosition(player, position) {
-    player.style.left = `${position.x}px`;
-    player.style.top = `${position.y}px`;
+  function drawRoom(context, canvas, roomState) {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (roomState.backgroundImage) {
+      context.drawImage(roomState.backgroundImage, 0, 0, canvas.width, canvas.height);
+    } else {
+      context.fillStyle = "#14141f";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+    }
+
+    context.fillStyle = "rgba(0, 0, 0, 0.14)";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+  }
+
+  function drawPlayer(context, spriteImage, sprite, animationColumns, direction, frame, position) {
+    if (!spriteImage) {
+      return;
+    }
+
+    const source = getFrameSource(sprite, animationColumns, direction, frame);
+    const size = getSpriteSize(sprite);
+
+    context.imageSmoothingEnabled = false;
+    context.drawImage(
+      spriteImage,
+      source.sx,
+      source.sy,
+      source.sw,
+      source.sh,
+      position.x,
+      position.y,
+      size.width,
+      size.height,
+    );
   }
 
   window.PlayerRenderer = {
-    applyPlayerStyle,
+    drawPlayer,
+    drawRoom,
     getSpriteSize,
-    renderPlayerPosition,
-    setPlayerFrame,
   };
 })();

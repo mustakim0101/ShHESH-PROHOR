@@ -10,16 +10,14 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="game">
-    <div class="hud">
+  <main class="game">
+    <header class="hud" aria-label="Game heads-up display">
       <div class="hud-title">Shesh Prohor</div>
-      <div class="hud-sub">Use WASD or arrow keys to move. Shift to sprint.</div>
-    </div>
+      <div class="hud-sub">Use WASD or arrow keys to move between rooms.</div>
+    </header>
 
-    <div class="room" id="room">
-      <div class="player" id="player" aria-label="Maya"></div>
-    </div>
-  </div>
+    <canvas class="room" id="game-canvas" width="720" height="806" aria-label="Main game area"></canvas>
+  </main>
 
   <script src="src/config/playerConfig.js"></script>
   <script src="src/controllers/inputController.js"></script>
