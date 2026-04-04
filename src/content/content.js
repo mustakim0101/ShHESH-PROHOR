@@ -367,11 +367,11 @@
 
   uiText: {
     tasks: {
-      checkTv: "Check the TV.",
+      checkTv: "Walk to the TV.",
       checkRadio: "Go to the kitchen radio.",
       checkPhone: "Check the phone.",
-      goToChild: "Go to the child.",
-      answerChild: "Answer the child.",
+      goToChild: "Go to the younger child.",
+      answerChild: "Answer the question.",
       reachKitchen: "Run to the kitchen.",
       openDrawer: "Open the third drawer.",
       findCandle: "Take the candle.",
@@ -407,12 +407,29 @@
     },
     status: {
       lowBattery: "Phone battery is low.",
+      phoneDead: "The phone screen is dark now.",
       candleLit: "Candle lit. Stay close and keep moving.",
+      blackoutActive: "The blackout is active. Hurry before the battery drops more.",
+      phoneMatters: "Phone battery matters during the night.",
       signalLost: "Signal lost.",
       threatRising: "Something feels wrong.",
       familySafe: "The family is together.",
       familyWaiting: "Keep the family together until dawn.",
       familyHeld: "The family stays together for now.",
+    },
+    hints: {
+      headToChildrenRoom: "Head to the children's room.",
+      reachChildAndInteract: "Go to the younger child and press space to interact.",
+      blackoutStart: "The room is dark now. Go to the kitchen and find the candle.",
+      relightCandle: "Press SPACE again on the drawer to light the candle.",
+      frontDoorChoice: "Someone is at the door. Go there or check on the older child.",
+      returnToChildren: "Take the candle back to the children.",
+      stayCloseToChild: "Stay close to the younger child and press SPACE.",
+      familyHeldHint: "Keep the candle close. The family stays together for now.",
+      toyRobotOff: "The toy robot is silent now.",
+      chooseSource: "Choose which source to trust.",
+      event03Complete: "The flame catches. The apartment comes back in pieces.",
+      frontDoorChild: "The older child hesitates near the front of the room.",
     },
     event01: {
       intro:

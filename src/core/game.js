@@ -96,6 +96,14 @@
       return getText(["uiText", "status", statusId], fallback);
     }
 
+    function getHintText(hintId, fallback) {
+      return getText(["uiText", "hints", hintId], fallback);
+    }
+
+    function getOutcomeText(eventId, outcomeId, fallback) {
+      return getText(["uiText", eventId, "outcomes", outcomeId], fallback);
+    }
+
     const COPY = {
       event01: getEventCopy("event01", {
         title: "The Contradiction",
@@ -445,6 +453,16 @@
         return;
       }
 
+      if (state.systems.battery <= 0 && !state.systems.candleLit) {
+        ui.phoneStatus.textContent = getStatusText("phoneDead", "The phone screen is dark now.");
+        return;
+      }
+
+      if (state.systems.battery <= 5 && !state.systems.candleLit) {
+        ui.phoneStatus.textContent = getStatusText("lowBattery", "Phone battery is low.");
+        return;
+      }
+
       if (state.events.completed.event05) {
         ui.phoneStatus.textContent = getStatusText("familyHeld", "The family stays together for now.");
         return;
@@ -456,8 +474,8 @@
       }
 
       ui.phoneStatus.textContent = state.systems.blackout
-        ? getStatusText("lowBattery", "The blackout is active. Hurry before the battery drops more.")
-        : "Phone battery matters during the night.";
+        ? getStatusText("blackoutActive", "The blackout is active. Hurry before the battery drops more.")
+        : getStatusText("phoneMatters", "Phone battery matters during the night.");
     }
 
     function updateHud() {
@@ -475,6 +493,31 @@
         ui.timerValue.textContent = formatTime(state.systems.night.remaining);
       }
       setPhoneStatus();
+    }
+
+    function updateAtmosphereLighting() {
+      const bodyStyle = document.body.style;
+
+      if (!state.systems.blackout) {
+        bodyStyle.setProperty("--light-opacity", "0");
+        return;
+      }
+
+      const playerCenter = getPlayerCenter();
+      const xRatio = Math.max(0, Math.min(1, playerCenter.x / state.room.bounds.width));
+      const yRatio = Math.max(0, Math.min(1, playerCenter.y / state.room.bounds.height));
+      const batteryFactor = Math.max(0, Math.min(1, state.systems.battery / 18));
+      const size = state.systems.candleLit
+        ? 0.22
+        : Math.max(0.1, 0.14 + batteryFactor * 0.08);
+      const glowOpacity = state.systems.candleLit
+        ? 0.82
+        : Math.max(0.5, 0.64 + batteryFactor * 0.2);
+
+      bodyStyle.setProperty("--light-x", `${(xRatio * 100).toFixed(2)}%`);
+      bodyStyle.setProperty("--light-y", `${(yRatio * 100).toFixed(2)}%`);
+      bodyStyle.setProperty("--light-size", `${(size * 100).toFixed(2)}%`);
+      bodyStyle.setProperty("--light-opacity", `${glowOpacity.toFixed(2)}`);
     }
 
     function formatTime(totalSeconds) {
@@ -613,7 +656,7 @@
         audio.onEvent("event01");
       }
       setTaskQueue([
-        { id: "checkTv", label: "Walk to the TV.", completed: false },
+        { id: "checkTv", label: getTaskLabel("checkTv", "Walk to the TV."), completed: false },
         { id: "checkRadio", label: getTaskLabel("checkRadio", "Go to the kitchen radio."), completed: false },
         { id: "checkPhone", label: getTaskLabel("checkPhone", "Check the phone."), completed: false },
       ]);
@@ -630,7 +673,12 @@
         { id: "goToChild", label: getTaskLabel("goToChild", "Go to the younger child."), completed: false },
         { id: "answerChild", label: getTaskLabel("answerChild", "Answer the question."), completed: false },
       ]);
-      setInteractionHint(`Go to the younger child and ${getPromptText("interact", "Press SPACE to interact.").toLowerCase()}`);
+      setInteractionHint(
+        getHintText(
+          "reachChildAndInteract",
+          `Go to the younger child and ${getPromptText("interact", "Press SPACE to interact.").toLowerCase()}`,
+        ),
+      );
     }
 
     function triggerEvent03() {
@@ -649,7 +697,7 @@
         { id: "findCandle", label: getTaskLabel("findCandle", "Take the candle."), completed: false },
         { id: "lightCandle", label: getTaskLabel("lightCandle", "Light the candle."), completed: false },
       ]);
-      setInteractionHint("The room is dark now. Go to the kitchen and find the candle.");
+      setInteractionHint(getHintText("blackoutStart", "The room is dark now. Go to the kitchen and find the candle."));
     }
 
     function triggerEvent04() {
@@ -665,7 +713,7 @@
         { id: "checkChild", label: getTaskLabel("checkChild", "Find the older child."), completed: false },
         { id: "hideOrRespond", label: getTaskLabel("hideOrRespond", "Stay quiet or answer."), completed: false },
       ]);
-      setInteractionHint("Someone is at the door. Go there or check on the older child.");
+      setInteractionHint(getHintText("frontDoorChoice", "Someone is at the door. Go there or check on the older child."));
     }
 
     function triggerEvent05() {
@@ -694,7 +742,7 @@
           completed: false,
         },
       ]);
-      setInteractionHint("Take the candle back to the children.");
+      setInteractionHint(getHintText("returnToChildren", "Take the candle back to the children."));
     }
 
     function applyEndingState() {
@@ -721,11 +769,15 @@
       if (activeEventId === "event01") {
         state.events.completed.event01 = true;
         state.events.choiceHistory.event01 = choiceId;
+        let event01Outcome = getOutcomeText("event01", "tvChosen", "You decide to trust the TV.");
+
         if (choiceId === "trustRadio") {
           setThreat(state.systems.threat + 0.5);
+          event01Outcome = getOutcomeText("event01", "radioChosen", "You decide to trust the radio.");
         } else if (choiceId === "trustPhone") {
           setThreat(state.systems.threat + 1);
           setBattery(state.systems.battery - 2);
+          event01Outcome = getOutcomeText("event01", "phoneChosen", "You decide to trust the phone.");
         } else {
           setThreat(2);
         }
@@ -734,7 +786,6 @@
         }
         state.events.questionUnlocked = true;
         state.events.activeEventId = "event02-pending";
-        setInteractionHint("Head to the children's room.");
         setTaskQueue([
           {
             id: TASK_IDS.reachChildrenRoom,
@@ -742,6 +793,7 @@
             completed: false,
           },
         ]);
+        setInteractionHint(`${event01Outcome} ${getHintText("headToChildrenRoom", "Head to the children's room.")}`);
         maybeTriggerRoomEvents();
         return;
       }
@@ -750,14 +802,19 @@
         state.events.completed.event02 = true;
         state.events.choiceHistory.event02 = choiceId;
         completeTask("answerChild");
+        let event02Outcome = getOutcomeText("event02", "childComforted", "The child steps closer. The counting stops.");
+
         if (choiceId === "reassure") {
           setThreat(state.systems.threat + 0.5);
         } else if (choiceId === "deflect") {
           setThreat(state.systems.threat + 1);
+          event02Outcome = getOutcomeText("event02", "childUnsettled", "The child nods, but does not move.");
         } else {
           setThreat(state.systems.threat + 1.5);
+          event02Outcome = getOutcomeText("event02", "childWithdraws", "The child looks at you for a moment, then looks away.");
         }
         triggerEvent03();
+        setInteractionHint(`${event02Outcome} ${getHintText("blackoutStart", "The room is dark now. Go to the kitchen and find the candle.")}`);
         return;
       }
 
@@ -765,12 +822,17 @@
         state.events.completed.event04 = true;
         state.events.choiceHistory.event04 = choiceId;
         completeTask("hideOrRespond");
+        let event04Outcome = getOutcomeText("event04", "doorStaysClosed", "You stay still. The silence stretches.");
+
         if (choiceId === "speakThroughDoor") {
           setThreat(state.systems.threat + 1);
+          event04Outcome = getOutcomeText("event04", "presenceRevealed", "Your voice gives the apartment away.");
         } else if (choiceId === "moveAway") {
           setThreat(Math.max(1, state.systems.threat - 0.5));
+          event04Outcome = getOutcomeText("event04", "childRedirected", "You turn from the door and go to the older child first.");
         }
         triggerEvent05();
+        setInteractionHint(`${event04Outcome} ${getHintText("returnToChildren", "Take the candle back to the children.")}`);
         return;
       }
 
@@ -778,7 +840,7 @@
         state.events.completed.event05 = true;
         state.events.choiceHistory.event05 = choiceId;
         completeTask(TASK_IDS.stayWithFamily);
-        setInteractionHint("Keep the candle close. The family stays together for now.");
+        setInteractionHint(getOutcomeText("event05", "familyHeldTogether", "The candle burns low, but everyone is still here."));
         applyEndingState();
       }
     }
@@ -787,6 +849,7 @@
       if (state.events.completed.event01 || !areTasksComplete()) {
         return;
       }
+      setInteractionHint(getHintText("chooseSource", "Choose which source to trust."));
       openDialogue(COPY.event01);
     }
 
@@ -806,7 +869,7 @@
       if (state.events.activeEventId === "event05" && state.room.currentRoomId === "children-room") {
         completeTask(TASK_IDS.returnToChildrenRoom);
         if (!state.events.completed.event05 && !state.ui.currentDialogue) {
-          setInteractionHint("Stay close to the younger child and press SPACE.");
+          setInteractionHint(getHintText("stayCloseToChild", "Stay close to the younger child and press SPACE."));
         }
       }
     }
@@ -860,12 +923,16 @@
               completeTask("openDrawer");
               state.inventory.candle = true;
               completeTask("findCandle");
-              setInteractionHint("Press SPACE again on the drawer to light the candle.");
+              setInteractionHint(getHintText("relightCandle", "Press SPACE again on the drawer to light the candle."));
             } else if (!state.systems.candleLit) {
               state.systems.candleLit = true;
               completeTask("lightCandle");
               state.events.completed.event03 = true;
+              setInteractionHint(getHintText("event03Complete", "The flame catches. The apartment comes back in pieces."));
               triggerEvent04();
+              setInteractionHint(
+                `${getHintText("event03Complete", "The flame catches. The apartment comes back in pieces.")} ${getHintText("frontDoorChoice", "Someone is at the door. Go there or check on the older child.")}`,
+              );
             }
           }
           break;
@@ -878,12 +945,12 @@
         case "olderChild":
           if (state.events.activeEventId === "event04") {
             completeTask("checkChild");
-            setInteractionHint(getText(["dialogue", "olderChild", "duringKnock"], "The older child hesitates near the front of the room."));
+            setInteractionHint(getHintText("frontDoorChild", getText(["dialogue", "olderChild", "duringKnock"], "The older child hesitates near the front of the room.")));
           }
           break;
         case "toyRobot":
           state.inventory.robotOff = true;
-          setInteractionHint("The toy robot is silent now.");
+          setInteractionHint(getHintText("toyRobotOff", "The toy robot is silent now."));
           break;
         default:
           setInteractionHint(`${interactable.label}.`);
@@ -1139,6 +1206,7 @@
       updateTimer(dt);
       updateNightClock(dt);
       updateBattery(dt);
+      updateAtmosphereLighting();
       updateInteractionState();
       trySwitchRoom(spriteSize);
       syncBodyState();
