@@ -16,6 +16,10 @@
   --overlay-opacity: 0;
   --threat-pulse-speed: 0s;
   --threat-pulse-strength: 1;
+  --light-x: 50%;
+  --light-y: 55%;
+  --light-size: 18%;
+  --light-opacity: 0;
 }
 
 *,
@@ -38,7 +42,7 @@ body {
   font-size: 13px;
   line-height: 1.6;
   position: relative;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 body::before,
@@ -59,8 +63,17 @@ body::before {
 }
 
 body::after {
-  background: none;
-  opacity: 0;
+  background:
+    radial-gradient(
+      circle at var(--light-x) var(--light-y),
+      rgba(255, 224, 170, calc(var(--light-opacity) * 0.32)) 0,
+      rgba(255, 210, 146, calc(var(--light-opacity) * 0.18)) 12%,
+      rgba(0, 0, 0, 0) var(--light-size),
+      rgba(0, 0, 0, calc(var(--light-opacity) * 0.72)) calc(var(--light-size) + 11%),
+      rgba(0, 0, 0, calc(var(--light-opacity) * 0.92)) 100%
+    );
+  opacity: var(--light-opacity);
+  transition: opacity 0.25s ease, background 0.2s ease;
 }
 
 .home,
@@ -69,11 +82,18 @@ body::after {
   display: grid;
   place-items: center;
   gap: 16px;
-  padding: 20px;
+  padding: 12px;
 }
 
 .game-screen {
-  align-content: start;
+  min-height: calc(100vh - 24px);
+  width: min(98vw, 1480px);
+  margin: 0 auto;
+  grid-template-columns: 600px minmax(0, 1fr);
+  grid-template-areas: "hud stage";
+  align-items: start;
+  justify-content: center;
+  gap: 18px;
 }
 
 .home-panel,
@@ -100,6 +120,7 @@ body::after {
   font-family: "Bebas Neue", sans-serif;
   font-size: clamp(28px, 6vw, 52px);
   letter-spacing: 0.08em;
+  line-height: 0.9;
 }
 
 .home-sub,
@@ -135,24 +156,30 @@ body::after {
 }
 
 .hud-panel {
-  width: min(94vw, 980px);
-  padding: 16px 18px;
+  grid-area: hud;
+  width: 100%;
+  padding: 16px;
+  align-self: stretch;
 }
 
 .hud-row {
-  display: flex;
-  gap: 16px;
-  justify-content: space-between;
-  align-items: flex-start;
+  display: grid;
+  gap: 14px;
 }
 
 .hud-row + .hud-row {
   margin-top: 14px;
 }
 
+.hud-row-top {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .hud-meters {
-  display: flex;
-  gap: 10px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .meter-card {
@@ -176,11 +203,14 @@ body::after {
 
 .task-panel,
 .system-panel {
-  flex: 1;
-  min-height: 90px;
+  min-height: 120px;
   padding: 12px 14px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.hud-row-bottom {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .task-list {
@@ -204,14 +234,19 @@ body::after {
 }
 
 .canvas-shell {
+  grid-area: stage;
   position: relative;
-  width: min(94vw, 980px);
+  width: 100%;
+  height: calc(100vh - 24px);
   display: grid;
   justify-items: center;
+  align-items: start;
 }
 
 .room {
-  width: min(92vw, 720px);
+  width: auto;
+  max-width: 100%;
+  height: min(calc(100vh - 24px), 92vw);
   aspect-ratio: 650 / 728;
   background-image: url("assets/images/backgrounds/middlefloor.png");
   background-size: contain;
@@ -268,7 +303,7 @@ body::after {
   left: 50%;
   bottom: 18px;
   transform: translateX(-50%);
-  width: min(88vw, 720px);
+  width: min(92%, 720px);
   padding: 14px 16px;
   opacity: 0;
   pointer-events: none;
@@ -312,16 +347,16 @@ body::after {
 }
 
 body.threat-1 {
-  --vignette-opacity: 0.03;
-  --threat-tint: linear-gradient(rgba(20, 30, 60, 0.03), rgba(20, 30, 60, 0.03));
-  --room-overlay: linear-gradient(rgba(0, 0, 0, 0.01), rgba(0, 0, 0, 0.03));
+  --vignette-opacity: 0;
+  --threat-tint: linear-gradient(rgba(20, 30, 60, 0.01), rgba(20, 30, 60, 0.01));
+  --room-overlay: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.02));
   --room-brightness: 1;
   --room-saturate: 1;
   --room-contrast: 1;
 }
 
 body.threat-2 {
-  --vignette-opacity: 0.08;
+  --vignette-opacity: 0.04;
   --threat-tint: linear-gradient(rgba(34, 48, 74, 0.07), rgba(34, 48, 74, 0.07));
   --room-overlay: linear-gradient(rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.08));
   --room-brightness: 0.95;
@@ -445,14 +480,37 @@ body.end-dark {
 }
 
 @media (max-width: 760px) {
+  body {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .game-screen {
+    width: auto;
+    margin: 0;
+    min-height: auto;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "hud"
+      "stage";
+  }
+
   .hud-row {
     flex-direction: column;
   }
 
   .hud-meters {
-    width: 100%;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  .canvas-shell {
+    height: auto;
+  }
+
+  .room {
+    width: min(92vw, 720px);
+    height: auto;
   }
 
   .dialogue-box {

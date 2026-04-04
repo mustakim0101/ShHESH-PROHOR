@@ -2,8 +2,20 @@
   function createInputController(target) {
     const keys = new Set();
     const pressed = new Set();
+    const reservedKeys = new Set([
+      "ArrowUp",
+      "ArrowDown",
+      "ArrowLeft",
+      "ArrowRight",
+      "Space",
+      "Enter",
+    ]);
 
     const onKeyDown = (event) => {
+      if (reservedKeys.has(event.code)) {
+        event.preventDefault();
+      }
+
       if (!keys.has(event.code)) {
         pressed.add(event.code);
       }
@@ -11,6 +23,10 @@
     };
 
     const onKeyUp = (event) => {
+      if (reservedKeys.has(event.code)) {
+        event.preventDefault();
+      }
+
       keys.delete(event.code);
       pressed.delete(event.code);
     };

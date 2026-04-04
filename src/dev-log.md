@@ -1,3 +1,35 @@
+## 2026-04-04 phase 3 completion pass
+
+Finished the remaining Phase 3 polish so the current playable build has the full system, atmosphere, and wording loop in place before moving on to new crisis events.
+
+- `src/core/game.js`
+  - Added small helpers for event outcome text and blackout/candle atmosphere lighting.
+  - Phone status now reacts more clearly when the battery is critically low or fully drained.
+  - Event handoffs now keep consequence wording visible instead of dropping straight from a choice into a generic objective line.
+  - Added a choose-source prompt when Event 1 investigation is complete.
+
+- `style.css`
+  - Rebalanced `threat-1` and `threat-2` so the first level reads as calm and the second feels like a slight tint.
+  - Added a simple player-following blackout/candle light cone driven by runtime CSS variables.
+
+- `src/content/content.js`
+  - Added the remaining shared hint/status strings needed by the currently playable Phase 3 flow.
+  - Added reusable wording for the source-choice prompt, blackout completion, and front-door child reaction.
+
+## 2026-04-04 phase 3 wording finish pass
+
+Closed the remaining Phase 3 polish gap by moving the last active runtime wording into shared content so the currently playable flow reads more consistently.
+
+- `src/content/content.js`
+  - Cleaned up a few task labels so they match the on-screen flow better.
+  - Added shared status text for the normal phone state and blackout state.
+  - Added a small `uiText.hints` map for the live event hints used during Events 2 to 5 and a couple of common interaction lines.
+
+- `src/core/game.js`
+  - Added a small helper to read shared hint text from content.
+  - Replaced the remaining hardcoded gameplay hints and the default phone-status copy with content-driven wording.
+  - Switched the Event 1 TV task label over to the shared task text so the current playable sequence now reads from one reviewed source.
+
 ## 2026-04-04 step 9 candle carry pass + post-event04 continuation
 
 Started Step 9 with one small visual upgrade and one small progression upgrade so the night keeps moving after the front-door decision.
