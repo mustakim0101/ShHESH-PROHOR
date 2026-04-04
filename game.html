@@ -47,6 +47,13 @@
 
     <section class="canvas-shell" aria-label="Game area">
       <canvas class="room" id="game-canvas" width="720" height="806" aria-label="Main game area"></canvas>
+      <div class="level-overlay" id="level-overlay" aria-live="polite">
+        <div class="level-card">
+          <div class="level-kicker" id="level-kicker">Level</div>
+          <h2 class="level-title" id="level-title">Level One</h2>
+          <p class="level-body" id="level-body">Press Enter or Space to begin.</p>
+        </div>
+      </div>
       <div class="dialogue-box" id="dialogue-box" aria-live="polite">
         <div class="dialogue-kicker" id="dialogue-kicker">Event</div>
         <h2 class="dialogue-title" id="dialogue-title">Dialogue</h2>

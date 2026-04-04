@@ -8,6 +8,59 @@
     stayWithFamily: "stayWithFamily",
   };
 
+  const LEVEL_COPY = {
+    level1Start: {
+      kicker: "Level One",
+      title: "Level One",
+      body: "Check the TV, radio, and phone. Press Enter or Space to begin.",
+    },
+    level1Complete: {
+      kicker: "Level One Completed",
+      title: "Level One Completed",
+      body: "You chose what to trust first. Level Two begins now.",
+    },
+    level2Start: {
+      kicker: "Level Two",
+      title: "Level Two",
+      body: "Go to the children's room and answer the younger child. Press Enter or Space to begin.",
+    },
+    level2Complete: {
+      kicker: "Level Two Completed",
+      title: "Level Two Completed",
+      body: "Your answer shaped the night. Level Three begins now.",
+    },
+    level3Start: {
+      kicker: "Level Three",
+      title: "Level Three",
+      body: "The blackout begins. Reach the kitchen, take the candle, and light it. Press Enter or Space to begin.",
+    },
+    level3Complete: {
+      kicker: "Level Three Completed",
+      title: "Level Three Completed",
+      body: "The candle is lit. Level Four begins now.",
+    },
+    level4Start: {
+      kicker: "Level Four",
+      title: "Level Four",
+      body: "Someone is at the door. Check the older child and decide what to do. Press Enter or Space to begin.",
+    },
+    level4Complete: {
+      kicker: "Level Four Completed",
+      title: "Level Four Completed",
+      body: "You survived the knock. One final step remains: keep the family together.",
+    },
+    level5Start: {
+      kicker: "Final Beat",
+      title: "Stay Together",
+      body: "Take the candle back to the children and hold the family together. Press Enter or Space to begin.",
+    },
+    level5Complete: {
+      kicker: "Current Ending",
+      title: "Night Held",
+      body: "You kept the family together for now. This is the end of the current playable flow.",
+    },
+  };
+
   function createGame(options) {
     const canvas = options.canvas;
     const context = canvas.getContext("2d");
@@ -40,6 +93,10 @@
         dialogueTitle: document.getElementById("dialogue-title"),
         dialogueBody: document.getElementById("dialogue-body"),
         dialogueChoices: document.getElementById("dialogue-choices"),
+        levelOverlay: document.getElementById("level-overlay"),
+        levelKicker: document.getElementById("level-kicker"),
+        levelTitle: document.getElementById("level-title"),
+        levelBody: document.getElementById("level-body"),
       };
     }
 
@@ -453,6 +510,11 @@
         return;
       }
 
+      if (state.systems.gameOver) {
+        ui.phoneStatus.textContent = "The run has ended.";
+        return;
+      }
+
       if (state.systems.battery <= 0 && !state.systems.candleLit) {
         ui.phoneStatus.textContent = getStatusText("phoneDead", "The phone screen is dark now.");
         return;
@@ -490,7 +552,9 @@
         ui.batteryValue.textContent = `${Math.round(state.systems.battery)}%`;
       }
       if (ui.timerValue) {
-        ui.timerValue.textContent = formatTime(state.systems.night.remaining);
+        ui.timerValue.textContent = state.systems.gameOver
+          ? "--"
+          : formatTime(state.systems.night.remaining);
       }
       setPhoneStatus();
     }
@@ -547,6 +611,49 @@
       renderDialogue();
     }
 
+    function showLevelOverlay(config, onContinue) {
+      state.ui.levelOverlay = {
+        ...config,
+        onContinue: typeof onContinue === "function" ? onContinue : null,
+      };
+
+      if (ui.levelKicker) {
+        ui.levelKicker.textContent = config.kicker;
+      }
+      if (ui.levelTitle) {
+        ui.levelTitle.textContent = config.title;
+      }
+      if (ui.levelBody) {
+        ui.levelBody.textContent = config.body;
+      }
+      if (ui.levelOverlay) {
+        ui.levelOverlay.classList.add("is-active");
+      }
+    }
+
+    function hideLevelOverlay() {
+      if (ui.levelOverlay) {
+        ui.levelOverlay.classList.remove("is-active");
+      }
+      state.ui.levelOverlay = null;
+    }
+
+    function handleLevelOverlayInput() {
+      if (!state.ui.levelOverlay) {
+        return false;
+      }
+      if (!input.consumePressed("Enter") && !input.consumePressed("Space")) {
+        return true;
+      }
+
+      const pending = state.ui.levelOverlay;
+      hideLevelOverlay();
+      if (pending.onContinue) {
+        pending.onContinue();
+      }
+      return true;
+    }
+
     function renderDialogue() {
       if (!ui.dialogueBox) {
         return;
@@ -558,9 +665,9 @@
       }
 
       ui.dialogueBox.classList.add("is-active");
-      ui.dialogueKicker.textContent = state.timers.active
-        ? `Decision - ${Math.ceil(state.timers.active.remaining)}s`
-        : "Decision";
+      ui.dialogueKicker.textContent = state.systems.gameOver
+        ? "Run Ended"
+        : (state.timers.active ? `Decision - ${Math.ceil(state.timers.active.remaining)}s` : "Decision");
       ui.dialogueTitle.textContent = dialogue.title;
       ui.dialogueBody.textContent = dialogue.body;
       ui.dialogueChoices.innerHTML = "";
@@ -589,7 +696,7 @@
     }
 
     function updateTimer(dt) {
-      if (!state.timers.active) {
+      if (!state.timers.active || state.ui.levelOverlay || state.systems.gameOver) {
         return;
       }
       state.timers.active.remaining -= dt;
@@ -603,8 +710,33 @@
       }
     }
 
+    function showGameOver(title, body) {
+      if (state.systems.gameOver) {
+        return;
+      }
+      state.systems.gameOver = true;
+      state.systems.gameOverReason = title;
+      hideLevelOverlay();
+      if (audio && typeof audio.stopAll === "function") {
+        audio.stopAll();
+      }
+      closeDialogue();
+      setTaskQueue([]);
+      setInteractionHint("Game over. Refresh the page to play again.");
+      state.ui.currentDialogue = {
+        title,
+        body,
+        choices: [],
+      };
+      document.body.classList.remove("end-safe", "end-almost");
+      document.body.classList.add("end-dark");
+      renderDialogue();
+    }
+
     function updateNightClock(dt) {
-      state.systems.night.remaining = Math.max(0, state.systems.night.remaining - dt);
+      if (!state.ui.levelOverlay && !state.systems.gameOver) {
+        state.systems.night.remaining = Math.max(0, state.systems.night.remaining - dt);
+      }
     }
 
     function updateGateCooldown(dt) {
@@ -759,7 +891,7 @@
 
     function resolveDialogueChoice(choiceId) {
       const dialogue = state.ui.currentDialogue;
-      if (!dialogue) {
+      if (!dialogue || state.systems.gameOver) {
         return;
       }
 
@@ -784,17 +916,21 @@
         if (state.systems.threat < 2) {
           setThreat(2);
         }
-        state.events.questionUnlocked = true;
-        state.events.activeEventId = "event02-pending";
-        setTaskQueue([
-          {
-            id: TASK_IDS.reachChildrenRoom,
-            label: getTaskLabel("goToChildrensRoom", "Go to the children's room."),
-            completed: false,
-          },
-        ]);
-        setInteractionHint(`${event01Outcome} ${getHintText("headToChildrenRoom", "Head to the children's room.")}`);
-        maybeTriggerRoomEvents();
+        showLevelOverlay(LEVEL_COPY.level1Complete, () => {
+          showLevelOverlay(LEVEL_COPY.level2Start, () => {
+            state.events.questionUnlocked = true;
+            state.events.activeEventId = "event02-pending";
+            setTaskQueue([
+              {
+                id: TASK_IDS.reachChildrenRoom,
+                label: getTaskLabel("goToChildrensRoom", "Go to the children's room."),
+                completed: false,
+              },
+            ]);
+            setInteractionHint(`${event01Outcome} ${getHintText("headToChildrenRoom", "Head to the children's room.")}`);
+            maybeTriggerRoomEvents();
+          });
+        });
         return;
       }
 
@@ -813,8 +949,12 @@
           setThreat(state.systems.threat + 1.5);
           event02Outcome = getOutcomeText("event02", "childWithdraws", "The child looks at you for a moment, then looks away.");
         }
-        triggerEvent03();
-        setInteractionHint(`${event02Outcome} ${getHintText("blackoutStart", "The room is dark now. Go to the kitchen and find the candle.")}`);
+        showLevelOverlay(LEVEL_COPY.level2Complete, () => {
+          showLevelOverlay(LEVEL_COPY.level3Start, () => {
+            triggerEvent03();
+            setInteractionHint(`${event02Outcome} ${getHintText("blackoutStart", "The room is dark now. Go to the kitchen and find the candle.")}`);
+          });
+        });
         return;
       }
 
@@ -831,8 +971,12 @@
           setThreat(Math.max(1, state.systems.threat - 0.5));
           event04Outcome = getOutcomeText("event04", "childRedirected", "You turn from the door and go to the older child first.");
         }
-        triggerEvent05();
-        setInteractionHint(`${event04Outcome} ${getHintText("returnToChildren", "Take the candle back to the children.")}`);
+        showLevelOverlay(LEVEL_COPY.level4Complete, () => {
+          showLevelOverlay(LEVEL_COPY.level5Start, () => {
+            triggerEvent05();
+            setInteractionHint(`${event04Outcome} ${getHintText("returnToChildren", "Take the candle back to the children.")}`);
+          });
+        });
         return;
       }
 
@@ -840,8 +984,10 @@
         state.events.completed.event05 = true;
         state.events.choiceHistory.event05 = choiceId;
         completeTask(TASK_IDS.stayWithFamily);
-        setInteractionHint(getOutcomeText("event05", "familyHeldTogether", "The candle burns low, but everyone is still here."));
         applyEndingState();
+        showLevelOverlay(LEVEL_COPY.level5Complete, () => {
+          setInteractionHint(getOutcomeText("event05", "familyHeldTogether", "The candle burns low, but everyone is still here."));
+        });
       }
     }
 
@@ -875,7 +1021,7 @@
     }
 
     function handleInteractable(interactable) {
-      if (!interactable) {
+      if (!interactable || state.systems.gameOver) {
         return;
       }
 
@@ -928,11 +1074,14 @@
               state.systems.candleLit = true;
               completeTask("lightCandle");
               state.events.completed.event03 = true;
-              setInteractionHint(getHintText("event03Complete", "The flame catches. The apartment comes back in pieces."));
-              triggerEvent04();
-              setInteractionHint(
-                `${getHintText("event03Complete", "The flame catches. The apartment comes back in pieces.")} ${getHintText("frontDoorChoice", "Someone is at the door. Go there or check on the older child.")}`,
-              );
+              showLevelOverlay(LEVEL_COPY.level3Complete, () => {
+                showLevelOverlay(LEVEL_COPY.level4Start, () => {
+                  triggerEvent04();
+                  setInteractionHint(
+                    `${getHintText("event03Complete", "The flame catches. The apartment comes back in pieces.")} ${getHintText("frontDoorChoice", "Someone is at the door. Go there or check on the older child.")}`,
+                  );
+                });
+              });
             }
           }
           break;
@@ -960,7 +1109,7 @@
 
     function handleChoiceInput() {
       const dialogue = state.ui.currentDialogue;
-      if (!dialogue) {
+      if (!dialogue || !dialogue.choices.length || state.systems.gameOver) {
         return;
       }
 
@@ -989,13 +1138,26 @@
     }
 
     function updateBattery(dt) {
-      if (state.systems.blackout && !state.systems.candleLit) {
+      if (!state.systems.gameOver && state.systems.blackout && !state.systems.candleLit) {
         setBattery(state.systems.battery - dt * 0.8);
       }
     }
 
+    function maybeTriggerGameOver() {
+      if (state.systems.gameOver) {
+        return;
+      }
+      if (state.systems.night.remaining <= 0) {
+        showGameOver("Time Ran Out", "Morning did not come in time. The night closed in before you could finish what you needed to do.");
+        return;
+      }
+      if (state.systems.blackout && !state.systems.candleLit && state.systems.battery <= 0) {
+        showGameOver("Battery Dead", "The phone battery died before you could light the candle. The apartment fell fully dark.");
+      }
+    }
+
     function updatePosition(dt) {
-      if (state.ui.currentDialogue) {
+      if (state.ui.currentDialogue || state.ui.levelOverlay || state.systems.gameOver) {
         state.player.frame = 0;
         if (audio) {
           audio.setMovementActive(false, dt);
@@ -1076,7 +1238,7 @@
     }
 
     function trySwitchRoom(spriteSize) {
-      if (!currentGate || !input.consumePressed("KeyE")) {
+      if (!currentGate || state.ui.levelOverlay || state.systems.gameOver || !input.consumePressed("KeyE")) {
         return;
       }
 
@@ -1176,6 +1338,10 @@
     }
 
     function updateInteractionState() {
+      if (state.ui.levelOverlay || state.systems.gameOver) {
+        return;
+      }
+
       const interactable = getNearbyInteractable();
       const gateHint = currentGate ? getGateHint(currentGate) : "";
 
@@ -1197,6 +1363,15 @@
       const dt = Math.min(0.05, (now - state.animation.lastTime) / 1000);
       state.animation.lastTime = now;
 
+      if (handleLevelOverlayInput()) {
+        updateHud();
+        renderDialogue();
+        render();
+        input.clearPressed();
+        state.animation.frameRequestId = requestAnimationFrame(loop);
+        return;
+      }
+
       handleChoiceInput();
       updatePosition(dt);
       const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
@@ -1206,6 +1381,7 @@
       updateTimer(dt);
       updateNightClock(dt);
       updateBattery(dt);
+      maybeTriggerGameOver();
       updateAtmosphereLighting();
       updateInteractionState();
       trySwitchRoom(spriteSize);
@@ -1258,6 +1434,7 @@
         updateHud();
         renderTaskQueue();
         render();
+        showLevelOverlay(LEVEL_COPY.level1Start);
         state.animation.frameRequestId = requestAnimationFrame(loop);
       };
 

@@ -178,6 +178,16 @@
       ids.forEach((id) => this.stop(id));
     },
 
+    stopAll() {
+      Object.keys(this.clips).forEach((id) => this.stop(id));
+      this.currentAmbienceId = null;
+      this.currentMusicId = null;
+      this.footstepCooldown = 0;
+      this.clockTickCooldown = 0;
+      this.windCooldown = 0;
+      this.isMoving = false;
+    },
+
     playMusic(id) {
       if (this.currentMusicId && this.currentMusicId !== id) {
         this.stop(this.currentMusicId);

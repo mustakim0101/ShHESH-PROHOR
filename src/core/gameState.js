@@ -28,9 +28,11 @@
         battery: 18,
         candleLit: false,
         blackout: false,
+        gameOver: false,
+        gameOverReason: "",
         night: {
-          duration: 15 * 60,
-          remaining: 15 * 60,
+          duration: 5 * 60,
+          remaining: 5 * 60,
         },
       },
       inventory: {
@@ -45,6 +47,7 @@
         phoneHint: "Phone battery matters during the night.",
         currentDialogue: null,
         selectedChoiceIndex: 0,
+        levelOverlay: null,
       },
       events: {
         activeEventId: "event01",
