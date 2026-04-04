@@ -212,6 +212,46 @@ body::after {
   justify-items: center;
 }
 
+.level-overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  place-items: center;
+  background: rgba(2, 2, 8, 0.82);
+  z-index: 25;
+}
+
+.level-overlay.is-active {
+  display: grid;
+}
+
+.level-card {
+  width: min(84vw, 520px);
+  padding: 28px 24px;
+  text-align: center;
+  background: rgba(8, 8, 18, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+
+.level-kicker {
+  font-family: "Crimson Pro", serif;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.level-title {
+  margin-top: 8px;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: clamp(36px, 7vw, 64px);
+  letter-spacing: 0.08em;
+}
+
+.level-body {
+  margin-top: 10px;
+  color: rgba(231, 231, 245, 0.9);
+}
+
 .room {
   width: min(92vw, 720px);
   aspect-ratio: 650 / 728;
