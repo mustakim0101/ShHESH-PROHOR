@@ -202,12 +202,12 @@ Current choice impacts:
 
 ### 2. Battery System
 
-Battery starts at `18%`.
+Battery starts at `50%`.
 Battery is clamped between `0` and `100`.
 
 Current battery rules:
 - battery drops during blackout if the candle is not yet lit
-- drain rate is `0.8` per second during active blackout before candle lighting
+- drain rate is tuned so a full battery drains over the intended blackout pressure window before candle lighting
 - choosing `trustPhone` in Event 01 reduces battery by `2`
 
 Current battery usage in gameplay:
