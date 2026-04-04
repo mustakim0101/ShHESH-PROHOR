@@ -1,38 +1,11 @@
 (function () {
   const ROOM_IDS = ["living-room", "kitchen", "children-room", "basement"];
 
-<<<<<<< HEAD
-  const COPY = {
-    event01: {
-      title: "The Contradiction",
-      body: "The TV, radio, and phone are all telling different versions of the same night.",
-      timerSeconds: 60,
-      choices: [
-        { id: "trustTv", label: "Trust the TV." },
-        { id: "trustRadio", label: "Trust the radio." },
-        { id: "trustPhone", label: "Trust the phone." }
-      ]
-    },
-    event02: {
-      title: "The Question",
-      body: "The younger child is standing in the doorway, waiting for your answer.",
-      timerSeconds: 50,
-      choices: [
-        { id: "reassure", label: "We're together. Stay close to me." },
-        { id: "deflect", label: "It's late. Try to lie down for a bit." },
-        { id: "staySilent", label: "Say nothing." }
-      ]
-    },
-    event04: {
-      title: "The Knock",
-      body: "Someone knocks at the door the moment the candle is lit.",
-      timerSeconds: 30,
-      choices: [
-        { id: "stayQuiet", label: "Stay quiet." },
-        { id: "speakThroughDoor", label: "Speak through the door." },
-        { id: "moveAway", label: "Pull away and get the child back." }
-      ]
-    }
+  const TASK_IDS = {
+    reachChildrenRoom: "reachChildrenRoom",
+    returnToChildrenRoom: "returnToChildrenRoom",
+    checkYoungerChildAgain: "checkYoungerChildAgain",
+    stayWithFamily: "stayWithFamily",
   };
 
   const LEVEL_COPY = {
@@ -46,43 +19,46 @@
       title: "Level One Completed",
       body: "You chose what to trust first. Level Two begins now.",
     },
-    level2Complete: {
-      kicker: "Level Two Completed",
-      title: "Level Two Completed",
-      body: "Your answer shaped the night. Level Three begins now.",
-    },
     level2Start: {
       kicker: "Level Two",
       title: "Level Two",
       body: "Go to the children's room and answer the younger child. Press Enter or Space to begin.",
     },
-    level3Complete: {
-      kicker: "Level Three Completed",
-      title: "Level Three Completed",
-      body: "The candle is lit. Level Four begins now.",
+    level2Complete: {
+      kicker: "Level Two Completed",
+      title: "Level Two Completed",
+      body: "Your answer shaped the night. Level Three begins now.",
     },
     level3Start: {
       kicker: "Level Three",
       title: "Level Three",
       body: "The blackout begins. Reach the kitchen, take the candle, and light it. Press Enter or Space to begin.",
     },
-    level4Complete: {
-      kicker: "Level Four Completed",
-      title: "Level Four Completed",
-      body: "You survived the knock. This is the end of the current playable levels.",
+    level3Complete: {
+      kicker: "Level Three Completed",
+      title: "Level Three Completed",
+      body: "The candle is lit. Level Four begins now.",
     },
     level4Start: {
       kicker: "Level Four",
       title: "Level Four",
       body: "Someone is at the door. Check the older child and decide what to do. Press Enter or Space to begin.",
     },
-=======
-  const TASK_IDS = {
-    reachChildrenRoom: "reachChildrenRoom",
-    returnToChildrenRoom: "returnToChildrenRoom",
-    checkYoungerChildAgain: "checkYoungerChildAgain",
-    stayWithFamily: "stayWithFamily",
->>>>>>> 126a576be7e48f2f1bda7d1ba105e296b9ed030b
+    level4Complete: {
+      kicker: "Level Four Completed",
+      title: "Level Four Completed",
+      body: "You survived the knock. One final step remains: keep the family together.",
+    },
+    level5Start: {
+      kicker: "Final Beat",
+      title: "Stay Together",
+      body: "Take the candle back to the children and hold the family together. Press Enter or Space to begin.",
+    },
+    level5Complete: {
+      kicker: "Current Ending",
+      title: "Night Held",
+      body: "You kept the family together for now. This is the end of the current playable flow.",
+    },
   };
 
   function createGame(options) {
@@ -93,33 +69,41 @@
     const roomRegistry = window.RoomRegistry;
     const state = window.GameState.createGameState(canvas);
     const audio = window.AudioManager || null;
-    const ui = {
-      roomName: document.getElementById("hud-room-name"),
-      threatValue: document.getElementById("hud-threat-value"),
-      batteryValue: document.getElementById("hud-battery-value"),
-      timerValue: document.getElementById("hud-timer-value"),
-      taskList: document.getElementById("task-list"),
-      interactionHint: document.getElementById("interaction-hint"),
-      phoneStatus: document.getElementById("phone-status"),
-      dialogueBox: document.getElementById("dialogue-box"),
-      dialogueKicker: document.getElementById("dialogue-kicker"),
-      dialogueTitle: document.getElementById("dialogue-title"),
-      dialogueBody: document.getElementById("dialogue-body"),
-      dialogueChoices: document.getElementById("dialogue-choices"),
-      levelOverlay: document.getElementById("level-overlay"),
-      levelKicker: document.getElementById("level-kicker"),
-      levelTitle: document.getElementById("level-title"),
-      levelBody: document.getElementById("level-body")
-    };
+    const ui = getUiElements();
     let currentGate = null;
     let gateCooldown = 0;
+
+    // Flip this in the browser console with:
+    // window.SheshProhorDebug.showCollisionOverlay = true
+    window.SheshProhorDebug = window.SheshProhorDebug || {
+      showCollisionOverlay: false,
+    };
+
+    function getUiElements() {
+      return {
+        roomName: document.getElementById("hud-room-name"),
+        threatValue: document.getElementById("hud-threat-value"),
+        batteryValue: document.getElementById("hud-battery-value"),
+        timerValue: document.getElementById("hud-timer-value"),
+        taskList: document.getElementById("task-list"),
+        interactionHint: document.getElementById("interaction-hint"),
+        phoneStatus: document.getElementById("phone-status"),
+        dialogueBox: document.getElementById("dialogue-box"),
+        dialogueKicker: document.getElementById("dialogue-kicker"),
+        dialogueTitle: document.getElementById("dialogue-title"),
+        dialogueBody: document.getElementById("dialogue-body"),
+        dialogueChoices: document.getElementById("dialogue-choices"),
+        levelOverlay: document.getElementById("level-overlay"),
+        levelKicker: document.getElementById("level-kicker"),
+        levelTitle: document.getElementById("level-title"),
+        levelBody: document.getElementById("level-body"),
+      };
+    }
 
     function getCurrentRoom() {
       return roomRegistry.getRoom(state.room.currentRoomId);
     }
 
-<<<<<<< HEAD
-=======
     function getContent() {
       return window.GameContent || null;
     }
@@ -323,7 +307,6 @@
       );
     }
 
->>>>>>> 126a576be7e48f2f1bda7d1ba105e296b9ed030b
     function getSafeSpawnPosition(spawn, spriteSize, roomId) {
       const targetRoom = roomRegistry.getRoom(roomId);
       const requestedPosition = window.MovementController.clampPosition(
@@ -339,6 +322,7 @@
         return requestedPosition;
       }
 
+      // If a stair spawn lands on a blocked strip, nudge it to the closest valid floor tile.
       return window.MovementController.findNearestWalkablePosition(
         requestedPosition,
         state.room.bounds,
@@ -347,66 +331,185 @@
       );
     }
 
-    function resizeCanvas() {
-      const rect = canvas.getBoundingClientRect();
-      const nextWidth = Math.max(320, Math.round(rect.width || canvas.width));
-      canvas.width = nextWidth;
-      canvas.height = Math.round((nextWidth * 728) / 650);
-      state.room.bounds = { width: canvas.width, height: canvas.height };
-      const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
-      state.player.position = window.MovementController.clampPosition(state.player.position, state.room.bounds, spriteSize);
-    }
-
-    function setThreat(value) {
-      state.systems.threat = Math.max(1, Math.min(5, Math.round(value * 2) / 2));
-      for (let index = 1; index <= 5; index += 1) {
-        document.body.classList.remove(`threat-${index}`);
+    function getGateDebugRect(gate, spriteSize) {
+      if (gate.area) {
+        return {
+          x: gate.area.x.start * state.room.bounds.width,
+          y: gate.area.y.start * state.room.bounds.height,
+          width: (gate.area.x.end - gate.area.x.start) * state.room.bounds.width,
+          height: (gate.area.y.end - gate.area.y.start) * state.room.bounds.height,
+        };
       }
-      document.body.classList.add(`threat-${Math.ceil(state.systems.threat)}`);
-      if (audio) audio.setThreatLevel(state.systems.threat);
+
+      const threshold = gate.threshold || 24;
+
+      if (gate.side === "left") {
+        return {
+          x: 0,
+          y: gate.range.start * state.room.bounds.height,
+          width: threshold,
+          height: (gate.range.end - gate.range.start) * state.room.bounds.height,
+        };
+      }
+
+      if (gate.side === "right") {
+        return {
+          x: state.room.bounds.width - threshold,
+          y: gate.range.start * state.room.bounds.height,
+          width: threshold,
+          height: (gate.range.end - gate.range.start) * state.room.bounds.height,
+        };
+      }
+
+      if (gate.side === "top") {
+        return {
+          x: gate.range.start * state.room.bounds.width,
+          y: 0,
+          width: (gate.range.end - gate.range.start) * state.room.bounds.width,
+          height: threshold,
+        };
+      }
+
+      if (gate.side === "bottom") {
+        return {
+          x: gate.range.start * state.room.bounds.width,
+          y: state.room.bounds.height - threshold,
+          width: (gate.range.end - gate.range.start) * state.room.bounds.width,
+          height: threshold,
+        };
+      }
+
+      return null;
     }
 
-    function setBattery(value) {
-      state.systems.battery = Math.max(0, Math.min(100, value));
+    function drawDebugZone(zone, fillStyle, strokeStyle) {
+      const x = zone.x.start * state.room.bounds.width;
+      const y = zone.y.start * state.room.bounds.height;
+      const width = (zone.x.end - zone.x.start) * state.room.bounds.width;
+      const height = (zone.y.end - zone.y.start) * state.room.bounds.height;
+
+      context.save();
+      context.fillStyle = fillStyle;
+      context.strokeStyle = strokeStyle;
+      context.lineWidth = 2;
+      context.fillRect(x, y, width, height);
+      context.strokeRect(x, y, width, height);
+      context.restore();
     }
 
-    function renderTaskQueue() {
-      if (!ui.taskList) return;
-      ui.taskList.innerHTML = "";
-      state.ui.taskQueue.forEach((task) => {
-        const item = document.createElement("li");
-        item.className = `task-item${task.completed ? " is-complete" : ""}`;
-        item.textContent = task.label;
-        ui.taskList.appendChild(item);
+    function drawDebugMarker(position, label, color) {
+      const footProbe = window.MovementController.getFootProbe(
+        position,
+        window.PlayerRenderer.getSpriteSize(sprite),
+        state.room.bounds,
+      );
+      const x = footProbe.x * state.room.bounds.width;
+      const y = footProbe.y * state.room.bounds.height;
+
+      context.save();
+      context.strokeStyle = color;
+      context.fillStyle = color;
+      context.lineWidth = 2;
+      context.beginPath();
+      context.moveTo(x - 8, y);
+      context.lineTo(x + 8, y);
+      context.moveTo(x, y - 8);
+      context.lineTo(x, y + 8);
+      context.stroke();
+      context.font = '12px "JetBrains Mono", monospace';
+      context.fillText(label, x + 10, y - 10);
+      context.restore();
+    }
+
+    function drawCollisionDebugOverlay(currentRoom, spriteSize) {
+      if (!isCollisionDebugEnabled() || !currentRoom) {
+        return;
+      }
+
+      (currentRoom.walkableZones || []).forEach((zone) => {
+        drawDebugZone(zone, "rgba(72, 201, 176, 0.18)", "rgba(72, 201, 176, 0.9)");
       });
-    }
 
-    function setTaskQueue(items) {
-      state.ui.taskQueue = items.map((item) => ({ ...item }));
-      renderTaskQueue();
-    }
-
-    function completeTask(taskId) {
-      let changed = false;
-      state.ui.taskQueue = state.ui.taskQueue.map((task) => {
-        if (task.id !== taskId || task.completed) return task;
-        changed = true;
-        return { ...task, completed: true };
+      (currentRoom.blockedZones || []).forEach((zone) => {
+        drawDebugZone(zone, "rgba(231, 76, 60, 0.18)", "rgba(231, 76, 60, 0.9)");
       });
-      if (changed) renderTaskQueue();
+
+      (currentRoom.gates || []).forEach((gate) => {
+        const rect = getGateDebugRect(gate, spriteSize);
+        if (!rect) {
+          return;
+        }
+
+        context.save();
+        context.strokeStyle = "rgba(255, 214, 102, 0.95)";
+        context.lineWidth = 2;
+        context.setLineDash([8, 6]);
+        context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+        context.restore();
+      });
+
+      ROOM_IDS.forEach((roomId) => {
+        const sourceRoom = roomRegistry.getRoom(roomId);
+        if (!sourceRoom || !Array.isArray(sourceRoom.gates)) {
+          return;
+        }
+
+        sourceRoom.gates.forEach((gate) => {
+          if (gate.targetRoomId !== currentRoom.id) {
+            return;
+          }
+
+          const spawnPosition = getSafeSpawnPosition(gate.spawn, spriteSize, currentRoom.id);
+          const requestedPosition = window.MovementController.clampPosition(
+            {
+              x: (state.room.bounds.width - spriteSize.width) * gate.spawn.x,
+              y: (state.room.bounds.height - spriteSize.height) * gate.spawn.y,
+            },
+            state.room.bounds,
+            spriteSize,
+          );
+          const moved = requestedPosition.x !== spawnPosition.x || requestedPosition.y !== spawnPosition.y;
+          drawDebugMarker(
+            spawnPosition,
+            moved ? `${sourceRoom.name} spawn*` : `${sourceRoom.name} spawn`,
+            moved ? "rgba(255, 159, 67, 0.98)" : "rgba(93, 173, 226, 0.98)",
+          );
+        });
+      });
+
+      const footProbe = window.MovementController.getFootProbe(
+        state.player.position,
+        spriteSize,
+        state.room.bounds,
+      );
+      const playerFootX = footProbe.x * state.room.bounds.width;
+      const playerFootY = footProbe.y * state.room.bounds.height;
+
+      context.save();
+      context.fillStyle = isValidSpawnPosition(state.player.position, currentRoom, spriteSize)
+        ? "rgba(46, 204, 113, 0.95)"
+        : "rgba(255, 99, 71, 0.95)";
+      context.beginPath();
+      context.arc(playerFootX, playerFootY, 6, 0, Math.PI * 2);
+      context.fill();
+      context.restore();
     }
 
-    function areTasksComplete() {
-      return state.ui.taskQueue.length > 0 && state.ui.taskQueue.every((task) => task.completed);
-    }
+    function getGateHint(gate) {
+      if (!gate) {
+        return "";
+      }
 
-    function setInteractionHint(text) {
-      state.ui.interactionHint = text;
-      if (ui.interactionHint) ui.interactionHint.textContent = text;
+      // Gates can define friendly labels, but we also keep a fallback.
+      const actionLabel = gate.label || `enter ${getRoomName(gate.targetRoomId)}`;
+      return `Press E to ${actionLabel}`;
     }
 
     function setPhoneStatus() {
-      if (!ui.phoneStatus) return;
+      if (!ui.phoneStatus) {
+        return;
+      }
+
       if (state.systems.gameOver) {
         ui.phoneStatus.textContent = "The run has ended.";
         return;
@@ -437,8 +540,6 @@
         : getStatusText("phoneMatters", "Phone battery matters during the night.");
     }
 
-<<<<<<< HEAD
-=======
     function updateHud() {
       const room = getCurrentRoom();
       if (ui.roomName && room) {
@@ -451,7 +552,9 @@
         ui.batteryValue.textContent = `${Math.round(state.systems.battery)}%`;
       }
       if (ui.timerValue) {
-        ui.timerValue.textContent = formatTime(state.systems.night.remaining);
+        ui.timerValue.textContent = state.systems.gameOver
+          ? "--"
+          : formatTime(state.systems.night.remaining);
       }
       setPhoneStatus();
     }
@@ -481,7 +584,6 @@
       bodyStyle.setProperty("--light-opacity", `${glowOpacity.toFixed(2)}`);
     }
 
->>>>>>> 126a576be7e48f2f1bda7d1ba105e296b9ed030b
     function formatTime(totalSeconds) {
       const safeSeconds = Math.max(0, Math.ceil(totalSeconds));
       const minutes = Math.floor(safeSeconds / 60);
@@ -489,72 +591,17 @@
       return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     }
 
-    function updateHud() {
-      const room = getCurrentRoom();
-      if (ui.roomName && room) ui.roomName.textContent = room.name;
-      if (ui.threatValue) ui.threatValue.textContent = state.systems.threat.toFixed(1).replace(".0", "");
-      if (ui.batteryValue) ui.batteryValue.textContent = `${Math.round(state.systems.battery)}%`;
-      if (ui.timerValue) {
-        ui.timerValue.textContent = state.systems.gameOver
-          ? "--"
-          : formatTime(state.systems.night.remaining);
-      }
-      setPhoneStatus();
-    }
-
-    function renderDialogue() {
-      if (!ui.dialogueBox) return;
-      const dialogue = state.ui.currentDialogue;
-      if (!dialogue) {
-        ui.dialogueBox.classList.remove("is-active");
-        return;
-      }
-      ui.dialogueBox.classList.add("is-active");
-      ui.dialogueKicker.textContent = state.systems.gameOver
-        ? "Run Ended"
-        : (state.timers.active ? `Decision - ${Math.ceil(state.timers.active.remaining)}s` : "Decision");
-      ui.dialogueTitle.textContent = dialogue.title;
-      ui.dialogueBody.textContent = dialogue.body;
-      ui.dialogueChoices.innerHTML = "";
-      dialogue.choices.forEach((choice, index) => {
-        const item = document.createElement("li");
-        item.className = `dialogue-choice${index === state.ui.selectedChoiceIndex ? " is-selected" : ""}`;
-        item.textContent = `${index + 1}. ${choice.label}`;
-        ui.dialogueChoices.appendChild(item);
-      });
-    }
-
-    function showLevelOverlay(config, onContinue) {
-      state.ui.levelOverlay = {
+    function openDialogue(config) {
+      state.ui.currentDialogue = {
         ...config,
-        onContinue: typeof onContinue === "function" ? onContinue : null,
+        choices: config.choices.map((choice) => ({ ...choice })),
       };
-
-      if (ui.levelKicker) ui.levelKicker.textContent = config.kicker;
-      if (ui.levelTitle) ui.levelTitle.textContent = config.title;
-      if (ui.levelBody) ui.levelBody.textContent = config.body;
-      if (ui.levelOverlay) ui.levelOverlay.classList.add("is-active");
-    }
-
-    function hideLevelOverlay() {
-      if (ui.levelOverlay) ui.levelOverlay.classList.remove("is-active");
-      state.ui.levelOverlay = null;
-    }
-
-    function handleLevelOverlayInput() {
-      if (!state.ui.levelOverlay) return false;
-      if (!input.consumePressed("Enter") && !input.consumePressed("Space")) {
-        return true;
-      }
-
-      const pending = state.ui.levelOverlay;
-      hideLevelOverlay();
-      if (pending.onContinue) pending.onContinue();
-      return true;
-    }
-
-    function clearTimer() {
-      state.timers.active = null;
+      state.ui.selectedChoiceIndex = 0;
+      startTimer(
+        config.timerSeconds || 0,
+        () => resolveDialogueChoice(config.choices[config.choices.length - 1].id),
+      );
+      renderDialogue();
     }
 
     function closeDialogue() {
@@ -564,38 +611,92 @@
       renderDialogue();
     }
 
-    function openDialogue(config) {
-      state.ui.currentDialogue = {
+    function showLevelOverlay(config, onContinue) {
+      state.ui.levelOverlay = {
         ...config,
-        choices: config.choices.map((choice) => ({ ...choice }))
+        onContinue: typeof onContinue === "function" ? onContinue : null,
       };
-      state.ui.selectedChoiceIndex = 0;
-      state.timers.active = config.timerSeconds ? {
-        remaining: config.timerSeconds,
-        onExpire: () => resolveDialogueChoice(config.choices[config.choices.length - 1].id)
-      } : null;
-      renderDialogue();
+
+      if (ui.levelKicker) {
+        ui.levelKicker.textContent = config.kicker;
+      }
+      if (ui.levelTitle) {
+        ui.levelTitle.textContent = config.title;
+      }
+      if (ui.levelBody) {
+        ui.levelBody.textContent = config.body;
+      }
+      if (ui.levelOverlay) {
+        ui.levelOverlay.classList.add("is-active");
+      }
     }
 
-<<<<<<< HEAD
-    function showGameOver(title, body) {
-      if (state.systems.gameOver) return;
-      state.systems.gameOver = true;
-      state.systems.gameOverReason = title;
-      if (audio) audio.stopAll();
-      closeDialogue();
-      setTaskQueue([]);
-      setInteractionHint("Game over. Refresh the page to play again.");
-      state.ui.currentDialogue = { title, body, choices: [] };
-      document.body.classList.add("end-dark");
-      renderDialogue();
-=======
+    function hideLevelOverlay() {
+      if (ui.levelOverlay) {
+        ui.levelOverlay.classList.remove("is-active");
+      }
+      state.ui.levelOverlay = null;
+    }
+
+    function handleLevelOverlayInput() {
+      if (!state.ui.levelOverlay) {
+        return false;
+      }
+      if (!input.consumePressed("Enter") && !input.consumePressed("Space")) {
+        return true;
+      }
+
+      const pending = state.ui.levelOverlay;
+      hideLevelOverlay();
+      if (pending.onContinue) {
+        pending.onContinue();
+      }
+      return true;
+    }
+
+    function renderDialogue() {
+      if (!ui.dialogueBox) {
+        return;
+      }
+      const dialogue = state.ui.currentDialogue;
+      if (!dialogue) {
+        ui.dialogueBox.classList.remove("is-active");
+        return;
+      }
+
+      ui.dialogueBox.classList.add("is-active");
+      ui.dialogueKicker.textContent = state.systems.gameOver
+        ? "Run Ended"
+        : (state.timers.active ? `Decision - ${Math.ceil(state.timers.active.remaining)}s` : "Decision");
+      ui.dialogueTitle.textContent = dialogue.title;
+      ui.dialogueBody.textContent = dialogue.body;
+      ui.dialogueChoices.innerHTML = "";
+
+      dialogue.choices.forEach((choice, index) => {
+        const item = document.createElement("li");
+        item.className = `dialogue-choice${index === state.ui.selectedChoiceIndex ? " is-selected" : ""}`;
+        item.textContent = `${index + 1}. ${choice.label}`;
+        ui.dialogueChoices.appendChild(item);
+      });
+    }
+
+    function startTimer(seconds, onExpire) {
+      if (!seconds) {
+        state.timers.active = null;
+        return;
+      }
+      state.timers.active = {
+        remaining: seconds,
+        onExpire,
+      };
+    }
+
     function clearTimer() {
       state.timers.active = null;
     }
 
     function updateTimer(dt) {
-      if (!state.timers.active) {
+      if (!state.timers.active || state.ui.levelOverlay || state.systems.gameOver) {
         return;
       }
       state.timers.active.remaining -= dt;
@@ -609,8 +710,33 @@
       }
     }
 
+    function showGameOver(title, body) {
+      if (state.systems.gameOver) {
+        return;
+      }
+      state.systems.gameOver = true;
+      state.systems.gameOverReason = title;
+      hideLevelOverlay();
+      if (audio && typeof audio.stopAll === "function") {
+        audio.stopAll();
+      }
+      closeDialogue();
+      setTaskQueue([]);
+      setInteractionHint("Game over. Refresh the page to play again.");
+      state.ui.currentDialogue = {
+        title,
+        body,
+        choices: [],
+      };
+      document.body.classList.remove("end-safe", "end-almost");
+      document.body.classList.add("end-dark");
+      renderDialogue();
+    }
+
     function updateNightClock(dt) {
-      state.systems.night.remaining = Math.max(0, state.systems.night.remaining - dt);
+      if (!state.ui.levelOverlay && !state.systems.gameOver) {
+        state.systems.night.remaining = Math.max(0, state.systems.night.remaining - dt);
+      }
     }
 
     function updateGateCooldown(dt) {
@@ -654,33 +780,21 @@
         state.events.activeEventId === "event01" || state.events.activeEventId === "event04",
       );
       document.body.classList.toggle("threat-pulse", state.systems.threat >= 5);
->>>>>>> 126a576be7e48f2f1bda7d1ba105e296b9ed030b
     }
 
     function triggerEvent01() {
       state.events.activeEventId = "event01";
-      if (audio) audio.onEvent("event01");
+      if (audio) {
+        audio.onEvent("event01");
+      }
       setTaskQueue([
-<<<<<<< HEAD
-        { id: "checkTv", label: "Walk to the TV.", completed: false },
-        { id: "checkRadio", label: "Go to the kitchen radio.", completed: false },
-        { id: "checkPhone", label: "Check the phone.", completed: false }
-=======
         { id: "checkTv", label: getTaskLabel("checkTv", "Walk to the TV."), completed: false },
         { id: "checkRadio", label: getTaskLabel("checkRadio", "Go to the kitchen radio."), completed: false },
         { id: "checkPhone", label: getTaskLabel("checkPhone", "Check the phone."), completed: false },
->>>>>>> 126a576be7e48f2f1bda7d1ba105e296b9ed030b
       ]);
     }
 
     function triggerEvent02() {
-<<<<<<< HEAD
-      if (state.events.completed.event02) return;
-      state.events.activeEventId = "event02";
-      setTaskQueue([
-        { id: "goToChild", label: "Go to the younger child.", completed: false },
-        { id: "answerChild", label: "Answer the question.", completed: false }
-=======
       if (state.events.completed.event02) {
         return;
       }
@@ -690,7 +804,6 @@
       setTaskQueue([
         { id: "goToChild", label: getTaskLabel("goToChild", "Go to the younger child."), completed: false },
         { id: "answerChild", label: getTaskLabel("answerChild", "Answer the question."), completed: false },
->>>>>>> 126a576be7e48f2f1bda7d1ba105e296b9ed030b
       ]);
       setInteractionHint(
         getHintText(
@@ -700,62 +813,37 @@
       );
     }
 
-    function prepareLevelTwo() {
-      state.events.activeEventId = "event02";
-      setTaskQueue([
-        { id: "goToChild", label: "Go to the younger child.", completed: false },
-        { id: "answerChild", label: "Answer the question.", completed: false }
-      ]);
-      setInteractionHint("Head to the children's room and answer the younger child.");
-    }
-
     function triggerEvent03() {
-      if (state.events.blackoutStarted) return;
+      if (state.events.blackoutStarted) {
+        return;
+      }
       state.events.blackoutStarted = true;
       state.events.activeEventId = "event03";
       state.systems.blackout = true;
-      if (audio) audio.onEvent("event03");
+      if (audio) {
+        audio.onEvent("event03");
+      }
       setTaskQueue([
-<<<<<<< HEAD
-        { id: "reachKitchen", label: "Run to the kitchen.", completed: false },
-        { id: "openDrawer", label: "Open the third drawer.", completed: false },
-        { id: "findCandle", label: "Take the candle.", completed: false },
-        { id: "lightCandle", label: "Light it.", completed: false }
-=======
         { id: "reachKitchen", label: getTaskLabel("reachKitchen", "Run to the kitchen."), completed: false },
         { id: "openDrawer", label: getTaskLabel("openDrawer", "Open the third drawer."), completed: false },
         { id: "findCandle", label: getTaskLabel("findCandle", "Take the candle."), completed: false },
         { id: "lightCandle", label: getTaskLabel("lightCandle", "Light the candle."), completed: false },
->>>>>>> 126a576be7e48f2f1bda7d1ba105e296b9ed030b
       ]);
       setInteractionHint(getHintText("blackoutStart", "The room is dark now. Go to the kitchen and find the candle."));
     }
 
-    function prepareLevelThree() {
-      state.events.activeEventId = "event03";
-      setTaskQueue([
-        { id: "reachKitchen", label: "Run to the kitchen.", completed: false },
-        { id: "openDrawer", label: "Open the third drawer.", completed: false },
-        { id: "findCandle", label: "Take the candle.", completed: false },
-        { id: "lightCandle", label: "Light it.", completed: false }
-      ]);
-      setInteractionHint("Blackout. Go to the kitchen and light the candle.");
-    }
-
     function triggerEvent04() {
-      if (state.events.completed.event04) return;
+      if (state.events.completed.event04) {
+        return;
+      }
       state.events.activeEventId = "event04";
-      if (audio) audio.onEvent("event04");
+      if (audio) {
+        audio.onEvent("event04");
+      }
       setTaskQueue([
-<<<<<<< HEAD
-        { id: "goToDoor", label: "Go to the front door.", completed: false },
-        { id: "checkChild", label: "Find the older child.", completed: false },
-        { id: "hideOrRespond", label: "Stay quiet or answer.", completed: false }
-=======
         { id: "goToDoor", label: getTaskLabel("goToDoor", "Go to the front door."), completed: false },
         { id: "checkChild", label: getTaskLabel("checkChild", "Find the older child."), completed: false },
         { id: "hideOrRespond", label: getTaskLabel("hideOrRespond", "Stay quiet or answer."), completed: false },
->>>>>>> 126a576be7e48f2f1bda7d1ba105e296b9ed030b
       ]);
       setInteractionHint(getHintText("frontDoorChoice", "Someone is at the door. Go there or check on the older child."));
     }
@@ -801,19 +889,12 @@
       }
     }
 
-    function prepareLevelFour() {
-      state.events.activeEventId = "event04";
-      setTaskQueue([
-        { id: "goToDoor", label: "Go to the front door.", completed: false },
-        { id: "checkChild", label: "Find the older child.", completed: false },
-        { id: "hideOrRespond", label: "Stay quiet or answer.", completed: false }
-      ]);
-      setInteractionHint("Someone is at the door. Check the older child and decide what to do.");
-    }
-
     function resolveDialogueChoice(choiceId) {
       const dialogue = state.ui.currentDialogue;
-      if (!dialogue || state.systems.gameOver) return;
+      if (!dialogue || state.systems.gameOver) {
+        return;
+      }
+
       const activeEventId = state.events.activeEventId;
       closeDialogue();
 
@@ -832,30 +913,24 @@
         } else {
           setThreat(2);
         }
-<<<<<<< HEAD
-        if (state.systems.threat < 2) setThreat(2);
-        showLevelOverlay(LEVEL_COPY.level1Complete, () => {
-          showLevelOverlay(LEVEL_COPY.level2Start, () => {
-            state.events.questionUnlocked = true;
-            prepareLevelTwo();
-          });
-        });
-=======
         if (state.systems.threat < 2) {
           setThreat(2);
         }
-        state.events.questionUnlocked = true;
-        state.events.activeEventId = "event02-pending";
-        setTaskQueue([
-          {
-            id: TASK_IDS.reachChildrenRoom,
-            label: getTaskLabel("goToChildrensRoom", "Go to the children's room."),
-            completed: false,
-          },
-        ]);
-        setInteractionHint(`${event01Outcome} ${getHintText("headToChildrenRoom", "Head to the children's room.")}`);
-        maybeTriggerRoomEvents();
->>>>>>> 126a576be7e48f2f1bda7d1ba105e296b9ed030b
+        showLevelOverlay(LEVEL_COPY.level1Complete, () => {
+          showLevelOverlay(LEVEL_COPY.level2Start, () => {
+            state.events.questionUnlocked = true;
+            state.events.activeEventId = "event02-pending";
+            setTaskQueue([
+              {
+                id: TASK_IDS.reachChildrenRoom,
+                label: getTaskLabel("goToChildrensRoom", "Go to the children's room."),
+                completed: false,
+              },
+            ]);
+            setInteractionHint(`${event01Outcome} ${getHintText("headToChildrenRoom", "Head to the children's room.")}`);
+            maybeTriggerRoomEvents();
+          });
+        });
         return;
       }
 
@@ -863,17 +938,6 @@
         state.events.completed.event02 = true;
         state.events.choiceHistory.event02 = choiceId;
         completeTask("answerChild");
-<<<<<<< HEAD
-        if (choiceId === "reassure") setThreat(state.systems.threat + 0.5);
-        else if (choiceId === "deflect") setThreat(state.systems.threat + 1);
-        else setThreat(state.systems.threat + 1.5);
-        showLevelOverlay(LEVEL_COPY.level2Complete, () => {
-          showLevelOverlay(LEVEL_COPY.level3Start, () => {
-            prepareLevelThree();
-            triggerEvent03();
-          });
-        });
-=======
         let event02Outcome = getOutcomeText("event02", "childComforted", "The child steps closer. The counting stops.");
 
         if (choiceId === "reassure") {
@@ -885,9 +949,12 @@
           setThreat(state.systems.threat + 1.5);
           event02Outcome = getOutcomeText("event02", "childWithdraws", "The child looks at you for a moment, then looks away.");
         }
-        triggerEvent03();
-        setInteractionHint(`${event02Outcome} ${getHintText("blackoutStart", "The room is dark now. Go to the kitchen and find the candle.")}`);
->>>>>>> 126a576be7e48f2f1bda7d1ba105e296b9ed030b
+        showLevelOverlay(LEVEL_COPY.level2Complete, () => {
+          showLevelOverlay(LEVEL_COPY.level3Start, () => {
+            triggerEvent03();
+            setInteractionHint(`${event02Outcome} ${getHintText("blackoutStart", "The room is dark now. Go to the kitchen and find the candle.")}`);
+          });
+        });
         return;
       }
 
@@ -895,13 +962,6 @@
         state.events.completed.event04 = true;
         state.events.choiceHistory.event04 = choiceId;
         completeTask("hideOrRespond");
-<<<<<<< HEAD
-        if (choiceId === "speakThroughDoor") setThreat(state.systems.threat + 1);
-        else if (choiceId === "moveAway") setThreat(Math.max(1, state.systems.threat - 0.5));
-        showLevelOverlay(LEVEL_COPY.level4Complete, () => {
-          setInteractionHint("This is the end of the current playable levels.");
-        });
-=======
         let event04Outcome = getOutcomeText("event04", "doorStaysClosed", "You stay still. The silence stretches.");
 
         if (choiceId === "speakThroughDoor") {
@@ -911,8 +971,12 @@
           setThreat(Math.max(1, state.systems.threat - 0.5));
           event04Outcome = getOutcomeText("event04", "childRedirected", "You turn from the door and go to the older child first.");
         }
-        triggerEvent05();
-        setInteractionHint(`${event04Outcome} ${getHintText("returnToChildren", "Take the candle back to the children.")}`);
+        showLevelOverlay(LEVEL_COPY.level4Complete, () => {
+          showLevelOverlay(LEVEL_COPY.level5Start, () => {
+            triggerEvent05();
+            setInteractionHint(`${event04Outcome} ${getHintText("returnToChildren", "Take the candle back to the children.")}`);
+          });
+        });
         return;
       }
 
@@ -920,28 +984,30 @@
         state.events.completed.event05 = true;
         state.events.choiceHistory.event05 = choiceId;
         completeTask(TASK_IDS.stayWithFamily);
-        setInteractionHint(getOutcomeText("event05", "familyHeldTogether", "The candle burns low, but everyone is still here."));
         applyEndingState();
->>>>>>> 126a576be7e48f2f1bda7d1ba105e296b9ed030b
+        showLevelOverlay(LEVEL_COPY.level5Complete, () => {
+          setInteractionHint(getOutcomeText("event05", "familyHeldTogether", "The candle burns low, but everyone is still here."));
+        });
       }
     }
 
     function maybeOpenEvent01Dialogue() {
-<<<<<<< HEAD
-      if (!state.events.completed.event01 && areTasksComplete()) openDialogue(COPY.event01);
-=======
       if (state.events.completed.event01 || !areTasksComplete()) {
         return;
       }
       setInteractionHint(getHintText("chooseSource", "Choose which source to trust."));
       openDialogue(COPY.event01);
->>>>>>> 126a576be7e48f2f1bda7d1ba105e296b9ed030b
     }
 
     function maybeTriggerRoomEvents() {
-      if (state.events.questionUnlocked && !state.events.completed.event02 && state.room.currentRoomId === "children-room") {
+      if (
+        state.events.questionUnlocked
+        && !state.events.completed.event02
+        && state.room.currentRoomId === "children-room"
+      ) {
         triggerEvent02();
       }
+
       if (state.events.activeEventId === "event03" && state.room.currentRoomId === "kitchen") {
         completeTask("reachKitchen");
       }
@@ -954,26 +1020,14 @@
       }
     }
 
-    function getPlayerCenter() {
-      const size = window.PlayerRenderer.getSpriteSize(sprite);
-      return { x: state.player.position.x + size.width * 0.5, y: state.player.position.y + size.height * 0.5 };
-    }
-
-    function getNearbyInteractable() {
-      const room = getCurrentRoom();
-      if (!room || !room.interactables) return null;
-      const playerCenter = getPlayerCenter();
-      const minDimension = Math.min(state.room.bounds.width, state.room.bounds.height);
-      return room.interactables.find((item) => {
-        const targetX = state.room.bounds.width * item.x;
-        const targetY = state.room.bounds.height * item.y;
-        return Math.hypot(playerCenter.x - targetX, playerCenter.y - targetY) <= minDimension * item.radius;
-      }) || null;
-    }
-
     function handleInteractable(interactable) {
-      if (!interactable || state.systems.gameOver) return;
-      if (audio) audio.onInteractable(interactable.id);
+      if (!interactable || state.systems.gameOver) {
+        return;
+      }
+
+      if (audio) {
+        audio.onInteractable(interactable.id);
+      }
 
       switch (interactable.id) {
         case "tv":
@@ -1020,20 +1074,14 @@
               state.systems.candleLit = true;
               completeTask("lightCandle");
               state.events.completed.event03 = true;
-<<<<<<< HEAD
               showLevelOverlay(LEVEL_COPY.level3Complete, () => {
                 showLevelOverlay(LEVEL_COPY.level4Start, () => {
-                  prepareLevelFour();
                   triggerEvent04();
+                  setInteractionHint(
+                    `${getHintText("event03Complete", "The flame catches. The apartment comes back in pieces.")} ${getHintText("frontDoorChoice", "Someone is at the door. Go there or check on the older child.")}`,
+                  );
                 });
               });
-=======
-              setInteractionHint(getHintText("event03Complete", "The flame catches. The apartment comes back in pieces."));
-              triggerEvent04();
-              setInteractionHint(
-                `${getHintText("event03Complete", "The flame catches. The apartment comes back in pieces.")} ${getHintText("frontDoorChoice", "Someone is at the door. Go there or check on the older child.")}`,
-              );
->>>>>>> 126a576be7e48f2f1bda7d1ba105e296b9ed030b
             }
           }
           break;
@@ -1061,21 +1109,29 @@
 
     function handleChoiceInput() {
       const dialogue = state.ui.currentDialogue;
-      if (!dialogue || !dialogue.choices.length || state.systems.gameOver) return;
+      if (!dialogue || !dialogue.choices.length || state.systems.gameOver) {
+        return;
+      }
+
       if (input.consumePressed("ArrowUp")) {
-        state.ui.selectedChoiceIndex = (state.ui.selectedChoiceIndex + dialogue.choices.length - 1) % dialogue.choices.length;
+        state.ui.selectedChoiceIndex = (state.ui.selectedChoiceIndex + dialogue.choices.length - 1)
+          % dialogue.choices.length;
         renderDialogue();
       }
+
       if (input.consumePressed("ArrowDown")) {
         state.ui.selectedChoiceIndex = (state.ui.selectedChoiceIndex + 1) % dialogue.choices.length;
         renderDialogue();
       }
+
       for (let index = 0; index < dialogue.choices.length; index += 1) {
-        if (input.consumePressed(`Digit${index + 1}`)) {
+        const keyCode = `Digit${index + 1}`;
+        if (input.consumePressed(keyCode)) {
           resolveDialogueChoice(dialogue.choices[index].id);
           return;
         }
       }
+
       if (input.consumePressed("Enter")) {
         resolveDialogueChoice(dialogue.choices[state.ui.selectedChoiceIndex].id);
       }
@@ -1088,7 +1144,9 @@
     }
 
     function maybeTriggerGameOver() {
-      if (state.systems.gameOver) return;
+      if (state.systems.gameOver) {
+        return;
+      }
       if (state.systems.night.remaining <= 0) {
         showGameOver("Time Ran Out", "Morning did not come in time. The night closed in before you could finish what you needed to do.");
         return;
@@ -1101,29 +1159,56 @@
     function updatePosition(dt) {
       if (state.ui.currentDialogue || state.ui.levelOverlay || state.systems.gameOver) {
         state.player.frame = 0;
-        if (audio) audio.setMovementActive(false, dt);
+        if (audio) {
+          audio.setMovementActive(false, dt);
+        }
         return;
       }
+
       const vector = window.MovementController.getMovementVector(input.keys);
       const dx = vector.dx;
       const dy = vector.dy;
       const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
+
       if (dx === 0 && dy === 0) {
         state.player.frame = 0;
-        if (audio) audio.setMovementActive(false, dt);
+        if (audio) {
+          audio.setMovementActive(false, dt);
+        }
         return;
       }
-      const nextDirection = window.MovementController.getDirection(state.player.direction, dx, dy);
-      state.player.direction = nextDirection;
+
+      const nextDirection = window.MovementController.getDirection(
+        state.player.direction,
+        dx,
+        dy,
+      );
+
+      if (nextDirection !== state.player.direction) {
+        state.player.direction = nextDirection;
+        state.player.frame = 0;
+      } else {
+        state.player.direction = nextDirection;
+      }
+
       const speed = window.MovementController.getMoveSpeed(input, window.PlayerConfig.speed);
+      const currentRoom = getCurrentRoom();
+
       state.player.position = window.MovementController.resolveRoomCollision(
         state.player.position,
-        { x: state.player.position.x + dx * speed * dt, y: state.player.position.y + dy * speed * dt },
+        {
+          x: state.player.position.x + dx * speed * dt,
+          y: state.player.position.y + dy * speed * dt,
+        },
         state.room.bounds,
         spriteSize,
-        getCurrentRoom()
+        currentRoom,
       );
-      if (audio) audio.setMovementActive(true, dt);
+
+      if (audio) {
+        audio.setMovementActive(true, dt);
+      }
+
       state.animation.elapsed += dt;
       const fps = window.MovementController.getAnimationFps(input, window.PlayerConfig.fps);
       if (state.animation.elapsed >= 1 / fps) {
@@ -1133,75 +1218,110 @@
       }
     }
 
-    function isGateTriggered(gate, spriteSize) {
-      const footProbe = window.MovementController.getFootProbe(state.player.position, spriteSize, state.room.bounds);
-      const xRatio = footProbe.x;
-      const yRatio = footProbe.y;
-      const threshold = gate.threshold || 24;
-      if (gate.area) return xRatio >= gate.area.x.start && xRatio <= gate.area.x.end && yRatio >= gate.area.y.start && yRatio <= gate.area.y.end;
-      if (gate.side === "left") return state.player.position.x <= threshold && yRatio >= gate.range.start && yRatio <= gate.range.end;
-      if (gate.side === "right") return state.player.position.x + spriteSize.width >= state.room.bounds.width - threshold && yRatio >= gate.range.start && yRatio <= gate.range.end;
-      if (gate.side === "top") return state.player.position.y <= threshold && xRatio >= gate.range.start && xRatio <= gate.range.end;
-      if (gate.side === "bottom") return state.player.position.y + spriteSize.height >= state.room.bounds.height - threshold && xRatio >= gate.range.start && xRatio <= gate.range.end;
-      return false;
-    }
-
     function findActiveGate(spriteSize) {
-      if (gateCooldown > 0 || state.systems.gameOver) return null;
-      const room = getCurrentRoom();
-      if (!room || !room.gates) return null;
-      return room.gates.find((gate) => isGateTriggered(gate, spriteSize)) || null;
+      if (gateCooldown > 0) {
+        return null;
+      }
+
+      const currentRoom = getCurrentRoom();
+      if (!currentRoom || !currentRoom.gates) {
+        return null;
+      }
+
+      for (const gate of currentRoom.gates) {
+        if (isGateTriggered(gate, spriteSize)) {
+          return gate;
+        }
+      }
+
+      return null;
     }
 
     function trySwitchRoom(spriteSize) {
-      if (!currentGate || state.systems.gameOver || !input.consumePressed("KeyE")) return;
+      if (!currentGate || state.ui.levelOverlay || state.systems.gameOver || !input.consumePressed("KeyE")) {
+        return;
+      }
+
+      // Touching a gate only prepares the transition.
+      // Pressing E performs the room change intentionally.
       state.room.currentRoomId = currentGate.targetRoomId;
       state.room.visited[currentGate.targetRoomId] = true;
-      state.player.position = getSafeSpawnPosition(currentGate.spawn, spriteSize, currentGate.targetRoomId);
+      state.player.position = getSafeSpawnPosition(
+        currentGate.spawn,
+        spriteSize,
+        currentGate.targetRoomId,
+      );
       state.player.frame = 0;
-      if (audio) audio.setRoom(currentGate.targetRoomId);
+      if (audio) {
+        audio.setRoom(currentGate.targetRoomId);
+      }
       maybeTriggerRoomEvents();
       currentGate = null;
       gateCooldown = 0.2;
     }
 
-    function updateInteractionState() {
-      if (state.ui.levelOverlay || state.systems.gameOver) return;
-      const interactable = getNearbyInteractable();
-      const gateHint = currentGate ? `Press E to ${currentGate.label || `enter ${currentGate.targetRoomId}`}` : "";
-      if (interactable && gateHint) setInteractionHint(`${gateHint}. Press SPACE: ${interactable.label}`);
-      else if (interactable) setInteractionHint(`Press SPACE: ${interactable.label}`);
-      else if (gateHint) setInteractionHint(gateHint);
-      if (input.consumePressed("Space") && interactable) handleInteractable(interactable);
-    }
+    function isGateTriggered(gate, spriteSize) {
+      const footProbe = window.MovementController.getFootProbe(
+        state.player.position,
+        spriteSize,
+        state.room.bounds,
+      );
+      const xRatio = footProbe.x;
+      const yRatio = footProbe.y;
+      const threshold = gate.threshold || 24;
 
-    function updateTimer(dt) {
-      if (!state.timers.active || state.ui.levelOverlay || state.systems.gameOver) return;
-      state.timers.active.remaining -= dt;
-      if (state.timers.active.remaining > 0) return;
-      const expired = state.timers.active;
-      clearTimer();
-      if (typeof expired.onExpire === "function") expired.onExpire();
-    }
-
-    function updateNightClock(dt) {
-      if (!state.ui.levelOverlay && !state.systems.gameOver) {
-        state.systems.night.remaining = Math.max(0, state.systems.night.remaining - dt);
+      if (gate.area) {
+        return xRatio >= gate.area.x.start
+          && xRatio <= gate.area.x.end
+          && yRatio >= gate.area.y.start
+          && yRatio <= gate.area.y.end;
       }
+
+      if (gate.side === "left") {
+        return state.player.position.x <= threshold
+          && yRatio >= gate.range.start
+          && yRatio <= gate.range.end;
+      }
+
+      if (gate.side === "right") {
+        return state.player.position.x + spriteSize.width >= state.room.bounds.width - threshold
+          && yRatio >= gate.range.start
+          && yRatio <= gate.range.end;
+      }
+
+      if (gate.side === "top") {
+        return state.player.position.y <= threshold
+          && xRatio >= gate.range.start
+          && xRatio <= gate.range.end;
+      }
+
+      if (gate.side === "bottom") {
+        return state.player.position.y + spriteSize.height >= state.room.bounds.height - threshold
+          && xRatio >= gate.range.start
+          && xRatio <= gate.range.end;
+      }
+
+      return false;
     }
 
-    function syncBodyState() {
-      document.body.classList.toggle("blackout", state.systems.blackout);
-      document.body.classList.toggle("candle-on", state.systems.candleLit);
-      document.body.classList.toggle("tv-flicker", state.events.activeEventId === "event01" || state.events.activeEventId === "event04");
+    function getSpawnPosition(spawn, spriteSize) {
+      return getSafeSpawnPosition(spawn, spriteSize, state.room.currentRoomId);
     }
 
     function render() {
-      const room = getCurrentRoom();
-      const backgroundImage = room ? state.room.images[room.id] : null;
+      const currentRoom = getCurrentRoom();
+      const backgroundImage = currentRoom ? state.room.images[currentRoom.id] : null;
       const nearbyInteractable = getNearbyInteractable();
-      window.PlayerRenderer.drawRoom(context, canvas, { backgroundImage });
-      window.PlayerRenderer.drawInteractables(context, canvas, room && room.interactables ? room.interactables : [], nearbyInteractable);
+
+      window.PlayerRenderer.drawRoom(context, canvas, {
+        backgroundImage,
+      });
+      window.PlayerRenderer.drawInteractables(
+        context,
+        canvas,
+        getCurrentInteractables(),
+        nearbyInteractable,
+      );
       window.PlayerRenderer.drawPlayer(
         context,
         state.player.spriteImage,
@@ -1209,10 +1329,6 @@
         window.PlayerConfig.animationColumns,
         state.player.direction,
         state.player.frame,
-<<<<<<< HEAD
-        state.player.position
-      );
-=======
         state.player.position,
         {
           showCandle: state.systems.candleLit,
@@ -1222,6 +1338,10 @@
     }
 
     function updateInteractionState() {
+      if (state.ui.levelOverlay || state.systems.gameOver) {
+        return;
+      }
+
       const interactable = getNearbyInteractable();
       const gateHint = currentGate ? getGateHint(currentGate) : "";
 
@@ -1243,6 +1363,15 @@
       const dt = Math.min(0.05, (now - state.animation.lastTime) / 1000);
       state.animation.lastTime = now;
 
+      if (handleLevelOverlayInput()) {
+        updateHud();
+        renderDialogue();
+        render();
+        input.clearPressed();
+        state.animation.frameRequestId = requestAnimationFrame(loop);
+        return;
+      }
+
       handleChoiceInput();
       updatePosition(dt);
       const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
@@ -1252,6 +1381,7 @@
       updateTimer(dt);
       updateNightClock(dt);
       updateBattery(dt);
+      maybeTriggerGameOver();
       updateAtmosphereLighting();
       updateInteractionState();
       trySwitchRoom(spriteSize);
@@ -1265,78 +1395,53 @@
       input.clearPressed();
 
       state.animation.frameRequestId = requestAnimationFrame(loop);
->>>>>>> 126a576be7e48f2f1bda7d1ba105e296b9ed030b
     }
 
     function loadRoomImages() {
       ROOM_IDS.forEach((roomId) => {
         const roomConfig = roomRegistry.getRoom(roomId);
-        if (!roomConfig) return;
+        if (!roomConfig) {
+          return;
+        }
+
         const image = new Image();
         image.src = roomConfig.background;
         state.room.images[roomId] = image;
       });
     }
 
-    function loop(now) {
-      const dt = Math.min(0.05, (now - state.animation.lastTime) / 1000);
-      state.animation.lastTime = now;
-      if (handleLevelOverlayInput()) {
-        updateHud();
-        renderDialogue();
-        render();
-        input.clearPressed();
-        state.animation.frameRequestId = requestAnimationFrame(loop);
-        return;
-      }
-      handleChoiceInput();
-      updatePosition(dt);
-      const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
-      gateCooldown = Math.max(0, gateCooldown - dt);
-      currentGate = findActiveGate(spriteSize);
-      updateTimer(dt);
-      updateNightClock(dt);
-      updateBattery(dt);
-      maybeTriggerGameOver();
-      updateInteractionState();
-      trySwitchRoom(spriteSize);
-      syncBodyState();
-      updateHud();
-      renderDialogue();
-      render();
-      if (audio) audio.update(dt);
-      input.clearPressed();
-      state.animation.frameRequestId = requestAnimationFrame(loop);
-    }
-
     function init() {
       const image = new Image();
-
-      loadRoomImages();
-      resizeCanvas();
-      const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
-      state.player.position = getSafeSpawnPosition({ x: 0.5, y: 0.65 }, spriteSize, state.room.currentRoomId);
-      currentGate = findActiveGate(spriteSize);
-      if (audio) {
-        audio.init();
-        audio.setRoom(state.room.currentRoomId);
-      }
-      triggerEvent01();
-      setThreat(1);
-      updateHud();
-      renderTaskQueue();
-      render();
-      showLevelOverlay(LEVEL_COPY.level1Start);
-      state.animation.frameRequestId = requestAnimationFrame(loop);
 
       image.onload = () => {
         sprite.sheetW = image.width;
         sprite.sheetH = image.height;
         state.player.spriteImage = image;
+
+        loadRoomImages();
+        resizeCanvas();
+
+        const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
+        state.player.position = getSpawnPosition({ x: 0.5, y: 0.65 }, spriteSize);
+        currentGate = findActiveGate(spriteSize);
+
+        if (audio) {
+          audio.init();
+          audio.setRoom(state.room.currentRoomId);
+        }
+        triggerEvent01();
+        setThreat(1);
+        updateHud();
+        renderTaskQueue();
+        render();
+        showLevelOverlay(LEVEL_COPY.level1Start);
+        state.animation.frameRequestId = requestAnimationFrame(loop);
       };
+
       image.onerror = () => {
         console.error("Failed to load sprite sheet:", sprite.url);
       };
+
       image.src = sprite.url;
       window.addEventListener("resize", resizeCanvas);
     }
@@ -1347,11 +1452,11 @@
         cancelAnimationFrame(state.animation.frameRequestId);
         window.removeEventListener("resize", resizeCanvas);
         input.dispose();
-      }
+      },
     };
   }
 
   window.GameCore = {
-    createGame
+    createGame,
   };
 })();
