@@ -39,6 +39,7 @@
     const input = window.InputController.createInputController(window);
     const roomRegistry = window.RoomRegistry;
     const state = window.GameState.createGameState(canvas);
+    const audio = window.AudioManager || null;
     const ui = getUiElements();
 
     function getUiElements() {
@@ -96,6 +97,9 @@
         document.body.classList.remove(`threat-${index}`);
       }
       document.body.classList.add(`threat-${Math.ceil(state.systems.threat)}`);
+      if (audio) {
+        audio.setThreatLevel(state.systems.threat);
+      }
     }
 
     function setBattery(value) {
@@ -167,11 +171,16 @@
         ui.batteryValue.textContent = `${Math.round(state.systems.battery)}%`;
       }
       if (ui.timerValue) {
-        ui.timerValue.textContent = state.timers.active
-          ? `${Math.ceil(state.timers.active.remaining)}s`
-          : "--";
+        ui.timerValue.textContent = formatTime(state.systems.night.remaining);
       }
       setPhoneStatus();
+    }
+
+    function formatTime(totalSeconds) {
+      const safeSeconds = Math.max(0, Math.ceil(totalSeconds));
+      const minutes = Math.floor(safeSeconds / 60);
+      const seconds = safeSeconds % 60;
+      return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     }
 
     function openDialogue(config) {
@@ -202,7 +211,9 @@
       }
 
       ui.dialogueBox.classList.add("is-active");
-      ui.dialogueKicker.textContent = "Decision";
+      ui.dialogueKicker.textContent = state.timers.active
+        ? `Decision - ${Math.ceil(state.timers.active.remaining)}s`
+        : "Decision";
       ui.dialogueTitle.textContent = dialogue.title;
       ui.dialogueBody.textContent = dialogue.body;
       ui.dialogueChoices.innerHTML = "";
@@ -245,6 +256,10 @@
       }
     }
 
+    function updateNightClock(dt) {
+      state.systems.night.remaining = Math.max(0, state.systems.night.remaining - dt);
+    }
+
     function getCurrentInteractables() {
       const room = getCurrentRoom();
       return room && room.interactables ? room.interactables : [];
@@ -282,6 +297,9 @@
 
     function triggerEvent01() {
       state.events.activeEventId = "event01";
+      if (audio) {
+        audio.onEvent("event01");
+      }
       setTaskQueue([
         { id: "checkTv", label: "Walk to the TV.", completed: false },
         { id: "checkRadio", label: "Go to the kitchen radio.", completed: false },
@@ -308,6 +326,9 @@
       state.events.blackoutStarted = true;
       state.events.activeEventId = "event03";
       state.systems.blackout = true;
+      if (audio) {
+        audio.onEvent("event03");
+      }
       setTaskQueue([
         { id: "reachKitchen", label: "Run to the kitchen.", completed: false },
         { id: "openDrawer", label: "Open the third drawer.", completed: false },
@@ -322,6 +343,9 @@
         return;
       }
       state.events.activeEventId = "event04";
+      if (audio) {
+        audio.onEvent("event04");
+      }
       setTaskQueue([
         { id: "goToDoor", label: "Go to the front door.", completed: false },
         { id: "checkChild", label: "Find the older child.", completed: false },
@@ -409,6 +433,10 @@
     function handleInteractable(interactable) {
       if (!interactable) {
         return;
+      }
+
+      if (audio) {
+        audio.onInteractable(interactable.id);
       }
 
       switch (interactable.id) {
@@ -517,7 +545,10 @@
     function updatePosition(dt) {
       if (state.ui.currentDialogue) {
         state.player.frame = 0;
-        return;
+        if (audio) {
+          audio.setMovementActive(false, dt);
+        }
+        return { dx: 0, dy: 0 };
       }
 
       const vector = window.MovementController.getMovementVector(input.keys);
@@ -527,7 +558,10 @@
 
       if (dx === 0 && dy === 0) {
         state.player.frame = 0;
-        return;
+        if (audio) {
+          audio.setMovementActive(false, dt);
+        }
+        return { dx: 0, dy: 0 };
       }
 
       const nextDirection = window.MovementController.getDirection(
@@ -544,15 +578,22 @@
       }
 
       const speed = window.MovementController.getMoveSpeed(input, window.PlayerConfig.speed);
+      const currentRoom = getCurrentRoom();
 
-      state.player.position = window.MovementController.clampPosition(
+      state.player.position = window.MovementController.resolveRoomCollision(
+        state.player.position,
         {
           x: state.player.position.x + dx * speed * dt,
           y: state.player.position.y + dy * speed * dt,
         },
         state.room.bounds,
         spriteSize,
+        currentRoom,
       );
+
+      if (audio) {
+        audio.setMovementActive(true, dt);
+      }
 
       state.animation.elapsed += dt;
       const fps = window.MovementController.getAnimationFps(input, window.PlayerConfig.fps);
@@ -562,17 +603,18 @@
         state.animation.elapsed = 0;
       }
 
-      trySwitchRoom(spriteSize);
+      trySwitchRoom(spriteSize, vector);
+      return vector;
     }
 
-    function trySwitchRoom(spriteSize) {
+    function trySwitchRoom(spriteSize, movementVector) {
       const currentRoom = getCurrentRoom();
       if (!currentRoom || !currentRoom.gates) {
         return;
       }
 
       for (const gate of currentRoom.gates) {
-        if (!isGateTriggered(gate, spriteSize)) {
+        if (!isGateTriggered(gate, spriteSize, movementVector)) {
           continue;
         }
 
@@ -580,17 +622,27 @@
         state.room.visited[gate.targetRoomId] = true;
         state.player.position = getSpawnPosition(gate.spawn, spriteSize);
         state.player.frame = 0;
+        if (audio) {
+          audio.setRoom(gate.targetRoomId);
+        }
         maybeTriggerRoomEvents();
         return;
       }
     }
 
-    function isGateTriggered(gate, spriteSize) {
-      const playerCenterX = state.player.position.x + spriteSize.width * 0.5;
-      const playerCenterY = state.player.position.y + spriteSize.height * 0.5;
-      const xRatio = playerCenterX / state.room.bounds.width;
-      const yRatio = playerCenterY / state.room.bounds.height;
+    function isGateTriggered(gate, spriteSize, movementVector) {
+      const footProbe = window.MovementController.getFootProbe(
+        state.player.position,
+        spriteSize,
+        state.room.bounds,
+      );
+      const xRatio = footProbe.x;
+      const yRatio = footProbe.y;
       const threshold = gate.threshold || 24;
+
+      if (!isGateActivationSatisfied(gate, movementVector)) {
+        return false;
+      }
 
       if (gate.area) {
         return xRatio >= gate.area.x.start
@@ -624,6 +676,33 @@
       }
 
       return false;
+    }
+
+    function isGateActivationSatisfied(gate, movementVector) {
+      if (!gate.activation || !movementVector) {
+        return true;
+      }
+
+      const directions = [];
+      if (movementVector.dx <= -0.15) {
+        directions.push("left");
+      }
+      if (movementVector.dx >= 0.15) {
+        directions.push("right");
+      }
+      if (movementVector.dy <= -0.15) {
+        directions.push("up");
+      }
+      if (movementVector.dy >= 0.15) {
+        directions.push("down");
+      }
+
+      const allowedDirections = gate.activation.anyOfDirections || [];
+      if (!allowedDirections.length) {
+        return true;
+      }
+
+      return allowedDirections.some((direction) => directions.includes(direction));
     }
 
     function getSpawnPosition(spawn, spriteSize) {
@@ -680,12 +759,16 @@
       handleChoiceInput();
       updatePosition(dt);
       updateTimer(dt);
+      updateNightClock(dt);
       updateBattery(dt);
       updateInteractionState();
       syncBodyState();
       updateHud();
       renderDialogue();
       render();
+      if (audio) {
+        audio.update(dt);
+      }
       input.clearPressed();
 
       state.animation.frameRequestId = requestAnimationFrame(loop);
@@ -720,6 +803,10 @@
         const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
         state.player.position = getSpawnPosition({ x: 0.5, y: 0.65 }, spriteSize);
 
+        if (audio) {
+          audio.init();
+          audio.setRoom(state.room.currentRoomId);
+        }
         triggerEvent01();
         setThreat(1);
         updateHud();
