@@ -1,4 +1,32 @@
 (function () {
+  const OBJECT_IMAGE_CONFIG = {
+    tv: { path: "assets/images/objects/tv.png", scale: 4.6 },
+    toyRobot: { path: "assets/images/objects/Robot.png", scale: 6.5 },
+    radio: { path: "assets/images/objects/radio.png", scale: 4.0 },
+    kitchenDrawer2: { path: "assets/images/objects/drawer.png", scale: 7.9 },
+    kitchenDrawer3: { path: "assets/images/objects/drawer.png", scale: 7.9 },
+    phone: { path: "assets/images/objects/telephone.png", scale: 3.5 },
+    basementStairs: { path: "assets/images/objects/stair.png", scale: 3.4 },
+    safeCorner: { path: "assets/images/objects/safePlace.png", scale: 5.5 },
+  };
+
+  const objectImages = {};
+
+  function getObjectImage(id) {
+    const config = OBJECT_IMAGE_CONFIG[id];
+    if (!config) {
+      return null;
+    }
+
+    if (!objectImages[id]) {
+      const image = new Image();
+      image.src = config.path;
+      objectImages[id] = image;
+    }
+
+    return objectImages[id];
+  }
+
   function getSpriteSize(sprite) {
     return {
       width: sprite.frameW * sprite.scale,
@@ -43,10 +71,26 @@
       const y = canvas.height * item.y;
       const radius = Math.max(10, Math.round(Math.min(canvas.width, canvas.height) * item.radius * 0.3));
       const isActive = activeItem && item.id === activeItem.id;
+      const image = getObjectImage(item.id);
 
       context.save();
+      if (image && image.complete) {
+        const scale = OBJECT_IMAGE_CONFIG[item.id].scale || 1.6;
+        const drawWidth = radius * scale;
+        const aspectRatio = image.height > 0 ? image.width / image.height : 1;
+        const drawHeight = drawWidth / Math.max(0.6, aspectRatio);
+
+        context.drawImage(
+          image,
+          x - drawWidth * 0.5,
+          y - drawHeight * 0.5,
+          drawWidth,
+          drawHeight,
+        );
+      }
+
       context.strokeStyle = isActive ? "rgba(255, 196, 115, 0.95)" : "rgba(231, 231, 245, 0.45)";
-      context.fillStyle = isActive ? "rgba(255, 196, 115, 0.18)" : "rgba(14, 14, 28, 0.12)";
+      context.fillStyle = isActive ? "rgba(255, 196, 115, 0.12)" : "rgba(14, 14, 28, 0.06)";
       context.lineWidth = isActive ? 3 : 2;
       context.beginPath();
       context.arc(x, y, radius, 0, Math.PI * 2);
