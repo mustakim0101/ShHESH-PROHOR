@@ -35,7 +35,7 @@
     interactables: [
       { id: "basementStairs", label: "Basement Stairs", x: 0.93, y: 0.27, radius: 0.08 },
       { id: "safeCorner", label: "Safe Corner", x: 0.2, y: 0.8, radius: 0.08 },
-      { id: "basementDoor", label: "Outside Door", x: 0.82, y: 0.58, radius: 0.08 },
+      { id: "basementDoor", label: "Drawer", x: 0.82, y: 0.58, radius: 0.08 },
     ],
     gates: [
       {
