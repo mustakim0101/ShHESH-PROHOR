@@ -90,6 +90,14 @@
     return Object.values(AUDIO_MANIFEST).flatMap((group) => Object.values(group));
   }
 
+  function safeSessionStorage(action, fallbackValue = null) {
+    try {
+      return action(window.sessionStorage);
+    } catch (error) {
+      return fallbackValue;
+    }
+  }
+
   const manager = {
     manifest: AUDIO_MANIFEST,
     clips: {},
@@ -98,6 +106,7 @@
     currentThreatLevel: 1,
     currentAmbienceId: null,
     currentMusicId: null,
+    currentScene: "game",
     footstepCooldown: 0,
     isMoving: false,
     clockTickCooldown: 0,
@@ -112,6 +121,7 @@
 
       const unlockAudio = () => {
         this.unlocked = true;
+        safeSessionStorage((storage) => storage.setItem("shesh-prohor-audio-unlocked", "1"));
         if (this.currentMusicId) {
           this.playLoop(this.currentMusicId);
         }
@@ -120,8 +130,26 @@
         window.removeEventListener("pointerdown", unlockAudio);
       };
 
+      const wasUnlockedBefore = safeSessionStorage(
+        (storage) => storage.getItem("shesh-prohor-audio-unlocked") === "1",
+        false,
+      );
+
+      if (wasUnlockedBefore) {
+        this.unlocked = true;
+      }
+
       window.addEventListener("keydown", unlockAudio, { once: true });
       window.addEventListener("pointerdown", unlockAudio, { once: true });
+    },
+
+    unlock() {
+      this.unlocked = true;
+      safeSessionStorage((storage) => storage.setItem("shesh-prohor-audio-unlocked", "1"));
+      if (this.currentMusicId) {
+        this.playLoop(this.currentMusicId);
+      }
+      this.applyRoomAmbience();
     },
 
     getClip(id) {
@@ -209,6 +237,18 @@
     },
 
     setMenuActive(isActive) {
+      this.currentScene = isActive ? "menu" : "game";
+      if (isActive) {
+        this.playMusic("menuTheme");
+        this.stopMany(["nightRooms", "basementRain"]);
+      } else {
+        this.stopMusic();
+        this.applyRoomAmbience();
+      }
+    },
+
+    setStoryActive(isActive) {
+      this.currentScene = isActive ? "story" : "game";
       if (isActive) {
         this.playMusic("menuTheme");
         this.stopMany(["nightRooms", "basementRain"]);
@@ -219,6 +259,10 @@
     },
 
     applyRoomAmbience() {
+      if (this.currentScene === "menu" || this.currentScene === "story") {
+        return;
+      }
+
       const nextAmbienceId = this.currentRoomId === "basement" ? "basementRain"
         : (this.currentRoomId === "kitchen" || this.currentRoomId === "children-room" ? "nightRooms" : null);
 
@@ -316,6 +360,10 @@
 
     update(dt) {
       if (!this.unlocked) {
+        return;
+      }
+
+      if (this.currentScene === "menu" || this.currentScene === "story") {
         return;
       }
 

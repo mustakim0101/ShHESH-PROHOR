@@ -33,7 +33,7 @@
     blockedZones: [],
     interactables: [
       { id: "tv", label: "TV", x: 0.62, y: 0.48, radius: 0.08 },
-      { id: "frontDoor", label: "Front Door", x: 0.9, y: 0.41, radius: 0.07 },
+      { id: "frontDoor", label: "Front Door", x: 0.51, y: 0.34, radius: 0.07 },
       { id: "toyRobot", label: "Toy Robot", x: 0.5, y: 0.78, radius: 0.06 },
     ],
     gates: [

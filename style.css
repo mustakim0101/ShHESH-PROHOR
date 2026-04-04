@@ -111,6 +111,14 @@ body::after {
   text-align: center;
 }
 
+.home-panel.is-hidden {
+  display: none;
+}
+
+.home-panel--narrow {
+  width: min(92vw, 660px);
+}
+
 .controls-panel {
   text-align: left;
 }
@@ -136,8 +144,44 @@ body::after {
 .home-actions {
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
   gap: 12px;
   margin-top: 18px;
+}
+
+.about-list {
+  margin-top: 18px;
+  display: grid;
+  gap: 14px;
+  text-align: left;
+}
+
+.about-card {
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.about-name {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: 28px;
+  letter-spacing: 0.06em;
+}
+
+.about-line {
+  margin-top: 4px;
+  color: rgba(231, 231, 245, 0.92);
+}
+
+.about-line a {
+  color: var(--gold);
+  text-decoration: none;
+}
+
+.about-line a:hover,
+.about-line a:focus-visible {
+  text-decoration: underline;
+  outline: none;
 }
 
 .controls-copy {
@@ -263,6 +307,134 @@ body::after {
   background: rgba(8, 8, 18, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+}
+
+.story-screen {
+  position: fixed;
+  inset: 0;
+  display: none;
+  place-items: center;
+  padding: 20px;
+  z-index: 40;
+  background:
+    linear-gradient(rgba(4, 4, 10, 0.42), rgba(4, 4, 10, 0.86)),
+    url("assets/images/backgrounds/story pg.jpg") center / cover no-repeat;
+}
+
+.story-screen.is-active {
+  display: grid;
+}
+
+.story-screen__backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 50% 18%, rgba(245, 196, 115, 0.08), transparent 42%),
+    linear-gradient(rgba(2, 2, 6, 0.1), rgba(2, 2, 6, 0.58));
+}
+
+.story-panel {
+  position: relative;
+  width: min(92vw, 760px);
+  min-height: min(84vh, 880px);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 18px;
+  padding: clamp(24px, 4vw, 36px);
+  background: linear-gradient(rgba(8, 8, 18, 0.82), rgba(8, 8, 18, 0.94));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(12px);
+}
+
+.story-panel-head {
+  text-align: center;
+}
+
+.story-panel-head .level-title {
+  margin-top: 6px;
+}
+
+.story-panel-head .level-body {
+  max-width: 520px;
+  margin: 10px auto 0;
+}
+
+.story-viewport {
+  position: relative;
+  overflow: hidden;
+  min-height: 320px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+}
+
+.story-viewport::before,
+.story-viewport::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 72px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.story-viewport::before {
+  top: 0;
+  background: linear-gradient(rgba(8, 8, 18, 0.96), rgba(8, 8, 18, 0));
+}
+
+.story-viewport::after {
+  bottom: 0;
+  background: linear-gradient(rgba(8, 8, 18, 0), rgba(8, 8, 18, 0.96));
+}
+
+.story-copy {
+  position: absolute;
+  left: 50%;
+  width: min(100%, 560px);
+  padding: 0 12px 56px;
+  transform: translate(-50%, 0);
+  text-align: center;
+  font-family: "Crimson Pro", serif;
+  font-size: clamp(24px, 2.2vw, 31px);
+  line-height: 1.7;
+  letter-spacing: 0.02em;
+  color: rgba(243, 240, 230, 0.96);
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.38);
+}
+
+.story-copy p + p {
+  margin-top: 42px;
+}
+
+.story-signoff {
+  font-family: "Bebas Neue", sans-serif;
+  font-size: clamp(34px, 4vw, 52px);
+  letter-spacing: 0.08em;
+  color: var(--gold);
+}
+
+.story-actions {
+  margin-top: 0;
+}
+
+.story-button {
+  min-width: 148px;
+  background: rgba(255, 255, 255, 0.05);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.story-button:hover,
+.story-button:focus-visible,
+.menu-button:hover,
+.menu-button:focus-visible {
+  background: rgba(245, 196, 115, 0.12);
+  border-color: rgba(245, 196, 115, 0.46);
+  outline: none;
+  transform: translateY(-1px);
 }
 
 .level-kicker {
@@ -555,5 +727,28 @@ body.end-dark {
 
   .dialogue-box {
     bottom: 10px;
+  }
+
+  .story-screen {
+    padding: 12px;
+  }
+
+  .story-panel {
+    min-height: min(88vh, 880px);
+    width: min(96vw, 760px);
+    padding: 20px 16px;
+    gap: 14px;
+  }
+
+  .story-viewport {
+    min-height: 280px;
+  }
+
+  .story-copy {
+    font-size: clamp(21px, 5vw, 28px);
+  }
+
+  .story-actions {
+    flex-direction: column;
   }
 }
