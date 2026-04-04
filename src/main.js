@@ -1,12 +1,11 @@
 (function () {
-  const room = document.getElementById("room");
-  const player = document.getElementById("player");
+  const canvas = document.getElementById("game-canvas");
 
-  if (!room || !player) {
-    console.error("Game root elements were not found.");
+  if (!canvas) {
+    console.error("Game canvas was not found.");
     return;
   }
 
-  const game = window.GameCore.createGame({ room, player });
+  const game = window.GameCore.createGame({ canvas });
   game.init();
 })();

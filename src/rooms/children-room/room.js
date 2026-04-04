@@ -5,10 +5,12 @@
     background: "assets/images/backgrounds/topFloor.jpg",
     gates: [
       {
-        side: "left",
+        area: {
+          x: { start: 0.03, end: 0.28 },
+          y: { start: 0.72, end: 0.97 },
+        },
         targetRoomId: "living-room",
-        range: { start: 0.4, end: 0.82 },
-        spawn: { x: 0.82, y: 0.62 },
+        spawn: { x: 0.18, y: 0.2 },
       },
     ],
   });

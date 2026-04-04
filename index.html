@@ -10,27 +10,16 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="game">
-    <header class="hud" aria-label="Game heads-up display">
-      <div class="hud-title">Shesh Prohor</div>
-      <div class="hud-sub">Use WASD or arrow keys to move between rooms.</div>
-    </header>
+  <main class="home">
+    <section class="home-panel" aria-label="Main menu">
+      <h1 class="home-title">Shesh Prohor</h1>
+      <p class="home-sub">Main Menu</p>
 
-    <section class="room" id="room" aria-label="Main game area">
-      <div class="player" id="player" aria-label="Maya"></div>
+      <div class="home-actions">
+        <a class="menu-button" href="game.html">Resume</a>
+        <button class="menu-button" type="button">Setting</button>
+      </div>
     </section>
   </main>
-
-  <script src="src/config/playerConfig.js"></script>
-  <script src="src/controllers/inputController.js"></script>
-  <script src="src/controllers/movementController.js"></script>
-  <script src="src/renderers/playerRenderer.js"></script>
-  <script src="src/rooms/roomRegistry.js"></script>
-  <script src="src/rooms/living-room/room.js"></script>
-  <script src="src/rooms/kitchen/room.js"></script>
-  <script src="src/rooms/children-room/room.js"></script>
-  <script src="src/rooms/basement/room.js"></script>
-  <script src="src/core/game.js"></script>
-  <script src="src/main.js"></script>
 </body>
 </html>
