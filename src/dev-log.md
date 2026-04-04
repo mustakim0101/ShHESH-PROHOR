@@ -1,3 +1,38 @@
+## 2026-04-04 menu about panel + story music flow pass
+
+Polished the menu/story presentation by speeding up the intro scroll slightly, moving the front-door interactable to the updated door art, and wiring menu plus story music through the shared audio manager.
+
+- `index.html`
+  - Added an `About` button plus a matching contributor panel with a Back button.
+
+- `style.css`
+  - Added simple About-panel card styling while keeping the existing menu look.
+
+- `src/menu/menu.js`
+  - Added main-menu/About panel switching.
+  - Start Game now primes shared audio from the user click before navigating to the story page.
+
+- `src/story/storyIntro.js`
+  - Increased story auto-scroll speed from `30` to `36` pixels per second.
+  - Story intro now activates shared menu/story music while the prologue is on screen and releases it when gameplay starts or the player goes back.
+
+- `src/audio/audio.js`
+  - Added explicit `setStoryActive(...)` handling so the same music system can cover both menu and story screens.
+  - Added a safe unlock helper plus session persistence so audio can resume more reliably across the menu-to-story page change after user interaction.
+
+- `src/rooms/living-room/room.js`
+  - Moved the `frontDoor` interactable to the upper-center door area in the updated living-room art.
+
+## 2026-04-04 story intro speed nudge + front door reposition
+
+Made two small polish adjustments without changing the current event flow.
+
+- `src/story/storyIntro.js`
+  - Increased the prologue auto-scroll speed slightly so the story reaches gameplay a bit sooner while keeping the same smooth upward motion.
+
+- `src/rooms/living-room/room.js`
+  - Moved the `frontDoor` interactable back up to `x 0.90`, `y 0.30` so it sits on the edited upper door area instead of crowding the basement approach.
+
 ## 2026-04-04 phase 3 completion pass
 
 Finished the remaining Phase 3 polish so the current playable build has the full system, atmosphere, and wording loop in place before moving on to new crisis events.
@@ -189,6 +224,23 @@ Simplified the lighting mood system so threat and blackout darken the room witho
 
 - `src/core/game.js`
   - Removed the per-frame `updateAtmosphereLighting()` player-tracking effect because the new atmosphere no longer needs player-centered light coordinates.
+
+## 2026-04-04 story intro screen before gameplay
+
+Added a full-screen prologue screen between the main menu and the playable game.
+
+- `game.html`
+  - Added a dedicated story intro overlay with the supplied story text plus `Skip Story` and `Back to Menu` buttons.
+
+- `style.css`
+  - Added a fullscreen atmospheric story layout using `story pg.jpg`, a dark translucent overlay, shared title styling, and menu-style buttons.
+  - Added a scrolling text viewport with soft top and bottom fades so the story reads like an in-world prologue instead of a hard cut.
+
+- `src/story/storyIntro.js`
+  - Added a small story controller that auto-scrolls the text upward, auto-starts gameplay after the scroll finishes, and handles both story buttons.
+
+- `src/main.js`
+  - Start-up now waits for the story screen to finish or be skipped before calling `game.init()`.
 
 ## 2026-04-04 narrow stair collision cleanup + kitchen floor boundary pass
 

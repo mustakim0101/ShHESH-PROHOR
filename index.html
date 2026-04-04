@@ -11,13 +11,43 @@
 </head>
 <body>
   <main class="home">
-    <section class="home-panel" aria-label="Main menu">
+    <section class="home-panel" id="main-menu-panel" aria-label="Main menu">
       <h1 class="home-title">Shesh Prohor</h1>
       <p class="home-sub">A small family. One long night. Keep everyone safe until morning.</p>
 
       <div class="home-actions">
-        <a class="menu-button" href="game.html">Start Game</a>
+        <a class="menu-button" id="start-game-button" href="game.html">Start Game</a>
         <a class="menu-button" href="controls.html">Controls</a>
+        <button class="menu-button" id="about-button" type="button">About</button>
+      </div>
+    </section>
+
+    <section class="home-panel home-panel--narrow is-hidden" id="about-panel" aria-label="About Shesh Prohor" hidden>
+      <h1 class="home-title">About</h1>
+      <p class="home-sub">Contributors behind the current build of Shesh Prohor.</p>
+
+      <div class="about-list">
+        <article class="about-card">
+          <h2 class="about-name">Rubaiat Ar Rabib</h2>
+          <p class="about-line">GitHub: <a href="https://github.com/sloth-262" target="_blank" rel="noreferrer">sloth-262</a></p>
+          <p class="about-line">Email: <a href="mailto:rubaiat.rabeeb66@gmail.com">rubaiat.rabeeb66@gmail.com</a></p>
+        </article>
+
+        <article class="about-card">
+          <h2 class="about-name">Fairuz Anadi</h2>
+          <p class="about-line">GitHub: <a href="https://github.com/fairuz-anadi" target="_blank" rel="noreferrer">fairuz-anadi</a></p>
+          <p class="about-line">Email: <a href="mailto:fairuzanadi.048@gmail.com">fairuzanadi.048@gmail.com</a></p>
+        </article>
+
+        <article class="about-card">
+          <h2 class="about-name">Mustakim Musa</h2>
+          <p class="about-line">GitHub: <a href="https://github.com/mustakim0101" target="_blank" rel="noreferrer">mustakim0101</a></p>
+          <p class="about-line">Email: <a href="mailto:mustakim7038@gmail.com">mustakim7038@gmail.com</a></p>
+        </article>
+      </div>
+
+      <div class="home-actions">
+        <button class="menu-button" id="about-back-button" type="button">Back</button>
       </div>
     </section>
   </main>

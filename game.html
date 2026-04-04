@@ -63,6 +63,34 @@
     </section>
   </main>
 
+  <section class="story-screen is-active" id="story-screen" aria-label="Story intro">
+    <div class="story-screen__backdrop"></div>
+    <div class="story-panel">
+      <div class="story-panel-head">
+        <div class="level-kicker">Prologue</div>
+        <h1 class="level-title">Shesh Prohor</h1>
+        <p class="level-body">A small family. One long night. One last watch before morning.</p>
+      </div>
+
+      <div class="story-viewport" id="story-viewport" aria-live="polite">
+        <div class="story-copy" id="story-copy">
+          <p>The night did not break all at once.</p>
+          <p>It arrived in fragments -<br />a flicker on the television,<br />a voice swallowed by static,<br />a message that explained nothing.</p>
+          <p>Outside, something moved through the dark.<br />Inside, a mother moved through familiar rooms<br />that no longer felt safe.</p>
+          <p>The children only asked simple questions.<br />The night refused simple answers.</p>
+          <p>The power faded.<br />The battery fell.<br />The house grew quieter,<br />and every small choice grew heavier.</p>
+          <p>One family.<br />One home.<br />One last watch before morning.</p>
+          <p class="story-signoff">Shesh Prohor.</p>
+        </div>
+      </div>
+
+      <div class="home-actions story-actions">
+        <button class="menu-button story-button" id="story-skip-button" type="button">Skip Story</button>
+        <button class="menu-button story-button" id="story-back-button" type="button">Back to Menu</button>
+      </div>
+    </div>
+  </section>
+
   <script src="src/config/playerConfig.js"></script>
   <script src="src/controllers/inputController.js"></script>
   <script src="src/controllers/movementController.js"></script>
@@ -76,6 +104,7 @@
   <script src="src/content/content.js"></script>
   <script src="src/core/gameState.js"></script>
   <script src="src/core/game.js"></script>
+  <script src="src/story/storyIntro.js"></script>
   <script src="src/main.js"></script>
 </body>
 </html>
