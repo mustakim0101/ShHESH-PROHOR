@@ -234,10 +234,37 @@
       if (nextAmbienceId) {
         this.playLoop(nextAmbienceId);
       }
+
+      this.applyThreatMix();
     },
 
     setThreatLevel(level) {
       this.currentThreatLevel = level;
+      this.applyThreatMix();
+    },
+
+    applyThreatMix() {
+      const threat = Math.max(1, Math.min(5, this.currentThreatLevel));
+      const roomAmbience = this.getClip("nightRooms");
+      const basementAmbience = this.getClip("basementRain");
+      const tick = this.getClip("clockTick");
+      const wind = this.getClip("wind");
+
+      if (roomAmbience) {
+        roomAmbience.volume = Math.min(0.72, 0.42 + (threat - 1) * 0.06);
+      }
+
+      if (basementAmbience) {
+        basementAmbience.volume = Math.min(0.76, 0.46 + (threat - 1) * 0.05);
+      }
+
+      if (tick) {
+        tick.volume = Math.min(0.58, 0.28 + (threat - 1) * 0.06);
+      }
+
+      if (wind) {
+        wind.volume = Math.min(0.44, 0.18 + (threat - 1) * 0.05);
+      }
     },
 
     setRoom(roomId) {
@@ -282,6 +309,8 @@
 
       if (eventId === "event03") {
         this.play("thunder");
+      } else if (eventId === "event05") {
+        this.play("wind");
       }
     },
 
@@ -300,7 +329,8 @@
       this.windCooldown = Math.max(0, this.windCooldown - dt);
       if (this.windCooldown === 0 && this.currentRoomId !== "basement") {
         this.play("wind");
-        this.windCooldown = 18 + Math.random() * 16;
+        const threatWeight = Math.max(0, this.currentThreatLevel - 1);
+        this.windCooldown = Math.max(7, 18 + Math.random() * 16 - threatWeight * 2.5);
       }
     },
   };

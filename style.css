@@ -9,14 +9,17 @@
   --gold: #f5c473;
   --vignette-opacity: 0;
   --threat-tint: transparent;
+  --room-overlay: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0));
   --room-brightness: 1;
   --room-saturate: 1;
   --room-contrast: 1;
   --overlay-opacity: 0;
-  --candle-opacity: 0;
-  --candle-x: 50%;
-  --candle-y: 60%;
-  --candle-size: 220px;
+  --threat-pulse-speed: 0s;
+  --threat-pulse-strength: 1;
+  --light-x: 50%;
+  --light-y: 55%;
+  --light-size: 18%;
+  --light-opacity: 0;
 }
 
 *,
@@ -39,7 +42,7 @@ body {
   font-size: 13px;
   line-height: 1.6;
   position: relative;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 body::before,
@@ -60,9 +63,17 @@ body::before {
 }
 
 body::after {
-  background: radial-gradient(circle at var(--candle-x) var(--candle-y), rgba(255, 183, 94, 0.32) 0, rgba(255, 183, 94, 0.1) 30%, transparent var(--candle-size));
-  opacity: var(--candle-opacity);
-  transition: opacity 0.25s ease;
+  background:
+    radial-gradient(
+      circle at var(--light-x) var(--light-y),
+      rgba(255, 224, 170, calc(var(--light-opacity) * 0.32)) 0,
+      rgba(255, 210, 146, calc(var(--light-opacity) * 0.18)) 12%,
+      rgba(0, 0, 0, 0) var(--light-size),
+      rgba(0, 0, 0, calc(var(--light-opacity) * 0.72)) calc(var(--light-size) + 11%),
+      rgba(0, 0, 0, calc(var(--light-opacity) * 0.92)) 100%
+    );
+  opacity: var(--light-opacity);
+  transition: opacity 0.25s ease, background 0.2s ease;
 }
 
 .home,
@@ -71,11 +82,18 @@ body::after {
   display: grid;
   place-items: center;
   gap: 16px;
-  padding: 20px;
+  padding: 12px;
 }
 
 .game-screen {
-  align-content: start;
+  min-height: calc(100vh - 24px);
+  width: min(98vw, 1480px);
+  margin: 0 auto;
+  grid-template-columns: 600px minmax(0, 1fr);
+  grid-template-areas: "hud stage";
+  align-items: start;
+  justify-content: center;
+  gap: 18px;
 }
 
 .home-panel,
@@ -102,6 +120,7 @@ body::after {
   font-family: "Bebas Neue", sans-serif;
   font-size: clamp(28px, 6vw, 52px);
   letter-spacing: 0.08em;
+  line-height: 0.9;
 }
 
 .home-sub,
@@ -137,24 +156,30 @@ body::after {
 }
 
 .hud-panel {
-  width: min(94vw, 980px);
-  padding: 16px 18px;
+  grid-area: hud;
+  width: 100%;
+  padding: 16px;
+  align-self: stretch;
 }
 
 .hud-row {
-  display: flex;
-  gap: 16px;
-  justify-content: space-between;
-  align-items: flex-start;
+  display: grid;
+  gap: 14px;
 }
 
 .hud-row + .hud-row {
   margin-top: 14px;
 }
 
+.hud-row-top {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .hud-meters {
-  display: flex;
-  gap: 10px;
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .meter-card {
@@ -178,11 +203,14 @@ body::after {
 
 .task-panel,
 .system-panel {
-  flex: 1;
-  min-height: 90px;
+  min-height: 120px;
   padding: 12px 14px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.hud-row-bottom {
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .task-list {
@@ -206,10 +234,13 @@ body::after {
 }
 
 .canvas-shell {
+  grid-area: stage;
   position: relative;
-  width: min(94vw, 980px);
+  width: 100%;
+  height: calc(100vh - 24px);
   display: grid;
   justify-items: center;
+  align-items: start;
 }
 
 .level-overlay {
@@ -253,7 +284,9 @@ body::after {
 }
 
 .room {
-  width: min(92vw, 720px);
+  width: auto;
+  max-width: 100%;
+  height: min(calc(100vh - 24px), 92vw);
   aspect-ratio: 650 / 728;
   background-image: url("assets/images/backgrounds/middlefloor.png");
   background-size: contain;
@@ -276,8 +309,10 @@ body::after {
 }
 
 .room::before {
-  background: var(--threat-tint);
-  opacity: 0.7;
+  background:
+    var(--room-overlay),
+    var(--threat-tint);
+  opacity: 1;
   transition: opacity 0.8s ease, background 0.8s ease;
 }
 
@@ -308,7 +343,7 @@ body::after {
   left: 50%;
   bottom: 18px;
   transform: translateX(-50%);
-  width: min(88vw, 720px);
+  width: min(92%, 720px);
   padding: 14px 16px;
   opacity: 0;
   pointer-events: none;
@@ -352,53 +387,70 @@ body::after {
 }
 
 body.threat-1 {
-  --vignette-opacity: 0.05;
-  --threat-tint: linear-gradient(rgba(20, 30, 60, 0.06), rgba(20, 30, 60, 0.06));
+  --vignette-opacity: 0;
+  --threat-tint: linear-gradient(rgba(20, 30, 60, 0.01), rgba(20, 30, 60, 0.01));
+  --room-overlay: linear-gradient(rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.02));
   --room-brightness: 1;
   --room-saturate: 1;
   --room-contrast: 1;
 }
 
 body.threat-2 {
-  --vignette-opacity: 0.12;
-  --threat-tint: linear-gradient(rgba(42, 62, 92, 0.12), rgba(42, 62, 92, 0.12));
+  --vignette-opacity: 0.04;
+  --threat-tint: linear-gradient(rgba(34, 48, 74, 0.07), rgba(34, 48, 74, 0.07));
+  --room-overlay: linear-gradient(rgba(0, 0, 0, 0.04), rgba(0, 0, 0, 0.08));
   --room-brightness: 0.95;
-  --room-saturate: 0.95;
+  --room-saturate: 0.96;
   --room-contrast: 1.02;
 }
 
 body.threat-3 {
-  --vignette-opacity: 0.24;
-  --threat-tint: linear-gradient(rgba(52, 30, 50, 0.18), rgba(52, 30, 50, 0.18));
-  --room-brightness: 0.82;
-  --room-saturate: 0.82;
-  --room-contrast: 1.05;
+  --vignette-opacity: 0.16;
+  --threat-tint: linear-gradient(rgba(44, 28, 44, 0.12), rgba(36, 22, 40, 0.14));
+  --room-overlay: linear-gradient(rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.14));
+  --room-brightness: 0.9;
+  --room-saturate: 0.88;
+  --room-contrast: 1.04;
 }
 
 body.threat-4 {
-  --vignette-opacity: 0.36;
-  --threat-tint: linear-gradient(rgba(90, 18, 30, 0.24), rgba(40, 8, 18, 0.28));
-  --room-brightness: 0.7;
-  --room-saturate: 0.72;
-  --room-contrast: 1.08;
+  --vignette-opacity: 0.24;
+  --threat-tint: linear-gradient(rgba(74, 18, 30, 0.16), rgba(34, 10, 18, 0.18));
+  --room-overlay: linear-gradient(rgba(0, 0, 0, 0.13), rgba(0, 0, 0, 0.2));
+  --room-brightness: 0.84;
+  --room-saturate: 0.8;
+  --room-contrast: 1.06;
 }
 
 body.threat-5 {
-  --vignette-opacity: 0.54;
-  --threat-tint: linear-gradient(rgba(32, 0, 0, 0.46), rgba(10, 0, 0, 0.62));
-  --room-brightness: 0.45;
-  --room-saturate: 0.5;
-  --room-contrast: 1.15;
+  --vignette-opacity: 0.32;
+  --threat-tint: linear-gradient(rgba(54, 8, 12, 0.22), rgba(18, 4, 8, 0.24));
+  --room-overlay: linear-gradient(rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.28));
+  --room-brightness: 0.78;
+  --room-saturate: 0.74;
+  --room-contrast: 1.08;
+  --threat-pulse-speed: 2.2s;
+  --threat-pulse-strength: 1.03;
+}
+
+body.threat-5 .room,
+body.threat-5::before {
+  animation: dread-pulse var(--threat-pulse-speed) ease-in-out infinite;
 }
 
 body.blackout {
-  --overlay-opacity: 0.78;
-  --room-brightness: 0.12;
-  --room-saturate: 0.4;
+  --overlay-opacity: 0.18;
+  --room-overlay: linear-gradient(rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.32));
+  --room-brightness: 0.72;
+  --room-saturate: 0.74;
+  --room-contrast: 1.04;
 }
 
 body.candle-on {
-  --candle-opacity: 1;
+  --overlay-opacity: 0.1;
+  --room-overlay: linear-gradient(rgba(22, 12, 4, 0.12), rgba(0, 0, 0, 0.18));
+  --room-brightness: 0.8;
+  --room-saturate: 0.82;
 }
 
 body.tv-flicker .room::after {
@@ -452,15 +504,53 @@ body.end-dark {
   100% { transform: translateX(0); }
 }
 
+@keyframes dread-pulse {
+  0% {
+    opacity: 1;
+    filter: brightness(var(--room-brightness)) saturate(var(--room-saturate)) contrast(var(--room-contrast));
+  }
+  50% {
+    opacity: 0.96;
+    filter: brightness(calc(var(--room-brightness) * 0.86)) saturate(var(--room-saturate)) contrast(calc(var(--room-contrast) * var(--threat-pulse-strength)));
+  }
+  100% {
+    opacity: 1;
+    filter: brightness(var(--room-brightness)) saturate(var(--room-saturate)) contrast(var(--room-contrast));
+  }
+}
+
 @media (max-width: 760px) {
+  body {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
+
+  .game-screen {
+    width: auto;
+    margin: 0;
+    min-height: auto;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "hud"
+      "stage";
+  }
+
   .hud-row {
     flex-direction: column;
   }
 
   .hud-meters {
-    width: 100%;
     display: grid;
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  .canvas-shell {
+    height: auto;
+  }
+
+  .room {
+    width: min(92vw, 720px);
+    height: auto;
   }
 
   .dialogue-box {
