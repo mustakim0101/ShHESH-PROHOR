@@ -1,3 +1,73 @@
+## 2026-04-04 step 9 candle carry pass + post-event04 continuation
+
+Started Step 9 with one small visual upgrade and one small progression upgrade so the night keeps moving after the front-door decision.
+
+- `src/renderers/playerRenderer.js`
+  - Added a tiny carried candle that draws beside the mother's sprite only while `candleLit === true`.
+  - Kept the glow very small and warm so it reads like a held object instead of bringing back the old player-centered spotlight.
+
+- `src/core/game.js`
+  - Passed candle state into the player renderer so the candle follows the current sprite direction.
+  - Reused the existing HUD status line to show a simple candle-lit state once the flame is active.
+  - Added a small `event05` handoff after Event 4:
+    - return to the children's room
+    - check on the younger child
+    - stay with the family until morning
+  - Finishing that short follow-up now applies one of the existing ending atmosphere states instead of leaving the game with no further objective.
+
+- `src/content/content.js`
+  - Replaced the old unused Event 5 phone draft with a small family-regroup continuation that matches the current playable flow.
+  - Added task and status text for the candle/family follow-up.
+
+- `src/audio/audio.js`
+  - Added a soft wind cue when the post-door continuation begins so the handoff feels intentional.
+
+## 2026-04-04 step 8 wording review wiring pass
+
+Started the implementation-plan Step 8 work by moving reviewed writing into the runtime flow instead of leaving event wording hardcoded inside the game loop.
+
+- `src/content/content.js`
+  - Converted the content file into a browser-ready `window.GameContent` source so the live game can read it directly.
+
+- `game.html`
+  - Added the shared content script before `src/core/game.js`.
+
+- `src/core/game.js`
+  - Added small helper readers for shared content text.
+  - Event 1, Event 2, and Event 4 dialogue titles, intros, and choices now pull from `src/content/content.js`.
+  - Several task labels now pull from the shared UI text map instead of staying duplicated in code.
+  - A few interaction hints now use reviewed content strings, making future wording polish easier and safer.
+
+## 2026-04-04 event 1 to event 2 progression fix
+
+Fixed the handoff after Event 1 so choosing an answer now reliably leads into the children's-room objective instead of leaving the player with stale Event 1 context.
+
+- `src/core/game.js`
+  - After resolving Event 1, the task queue now shows `Go to the children's room.` instead of going blank.
+  - Event state now moves into a pending Event 2 step until the player reaches the children's room.
+  - Room-based event checks now run every frame as well as on room change, so Event 2 cannot be skipped if the handoff timing is awkward.
+  - Entering the children's room now marks the travel task complete and immediately swaps in the proper Event 2 tasks and hint.
+
+## 2026-04-04 step 7 atmosphere-to-threat finish pass
+
+Continued from the implementation plan's Step 7 and tightened the mood system so threat levels now feel more distinct in moment-to-moment play.
+
+- `style.css`
+  - Rebalanced the five threat states so they read more clearly as:
+    - threat 1 = calm
+    - threat 2 = slight tint
+    - threat 3 = stronger vignette
+    - threat 4 = darker/red
+    - threat 5 = near-black with a repeating pulse
+  - Reworked blackout lighting so the dark overlay stays heavy while the visible light radius comes from the player's current position.
+  - Made candle lighting expand that player-following light radius instead of using a fixed screen glow.
+
+- `src/core/game.js`
+  - Added `updateAtmosphereLighting()` so the blackout/candle spotlight follows the player on the actual canvas.
+
+- `src/audio/audio.js`
+  - Connected ambience, wind, and clock intensity more directly to threat level so higher threat sounds tighter and heavier.
+
 ## 2026-04-04 basement + kitchen collision shape recut
 
 Did one last room-specific collision pass for the basement and kitchen only, using more intentional floor/landing shapes instead of broad rectangles.
@@ -74,6 +144,19 @@ Moved the kitchen phone down onto reachable floor space so it no longer sits ins
 
 - `src/rooms/kitchen/room.js`
   - Moved `phone` from `x 0.78`, `y 0.34` to `x 0.78`, `y 0.58`.
+
+## 2026-04-04 atmosphere readability pass
+
+Simplified the lighting mood system so threat and blackout darken the room without creating a player-following spotlight.
+
+- `style.css`
+  - Removed the radial candle/glow overlay that was drawing a bright circle centered on the player.
+  - Reworked threat levels to use lighter room-wide dimming, softer tinting, and milder pulsing so the screen stays readable.
+  - Changed blackout to a subtle global darkening pass on the room instead of an oversized spotlight effect.
+  - Kept HUD readability by applying the strongest atmosphere changes to the room view rather than blanketing the whole screen.
+
+- `src/core/game.js`
+  - Removed the per-frame `updateAtmosphereLighting()` player-tracking effect because the new atmosphere no longer needs player-centered light coordinates.
 
 ## 2026-04-04 narrow stair collision cleanup + kitchen floor boundary pass
 

@@ -85,7 +85,65 @@
     context.restore();
   }
 
-  function drawPlayer(context, spriteImage, sprite, animationColumns, direction, frame, position) {
+  function getCandleAnchor(position, size, direction) {
+    if (direction === 1) {
+      return { x: position.x + size.width * 0.32, y: position.y + size.height * 0.56 };
+    }
+
+    if (direction === 2) {
+      return { x: position.x + size.width * 0.66, y: position.y + size.height * 0.56 };
+    }
+
+    if (direction === 3) {
+      return { x: position.x + size.width * 0.5, y: position.y + size.height * 0.44 };
+    }
+
+    return { x: position.x + size.width * 0.58, y: position.y + size.height * 0.54 };
+  }
+
+  function drawCarriedCandle(context, position, size, direction) {
+    const anchor = getCandleAnchor(position, size, direction);
+    const flicker = Math.sin(performance.now() * 0.014) * 1.2;
+    const flameY = anchor.y - 10 + flicker * 0.35;
+
+    context.save();
+
+    // Keep the glow tiny so the candle reads as an object, not a spotlight.
+    const glow = context.createRadialGradient(anchor.x, flameY, 1, anchor.x, flameY, 12);
+    glow.addColorStop(0, "rgba(255, 226, 150, 0.26)");
+    glow.addColorStop(0.55, "rgba(255, 184, 90, 0.12)");
+    glow.addColorStop(1, "rgba(255, 184, 90, 0)");
+    context.fillStyle = glow;
+    context.beginPath();
+    context.arc(anchor.x, flameY, 12, 0, Math.PI * 2);
+    context.fill();
+
+    context.fillStyle = "#f1e4cf";
+    context.fillRect(anchor.x - 2, anchor.y - 8, 4, 10);
+
+    context.fillStyle = "#ffcd68";
+    context.beginPath();
+    context.ellipse(anchor.x, flameY, 3.1, 4.6, 0, 0, Math.PI * 2);
+    context.fill();
+
+    context.fillStyle = "#fff4bf";
+    context.beginPath();
+    context.ellipse(anchor.x, flameY - 0.6, 1.4, 2.2, 0, 0, Math.PI * 2);
+    context.fill();
+
+    context.restore();
+  }
+
+  function drawPlayer(
+    context,
+    spriteImage,
+    sprite,
+    animationColumns,
+    direction,
+    frame,
+    position,
+    options = {},
+  ) {
     if (!spriteImage) {
       return;
     }
@@ -105,6 +163,10 @@
       size.width,
       size.height,
     );
+
+    if (options.showCandle) {
+      drawCarriedCandle(context, position, size, direction);
+    }
   }
 
   window.PlayerRenderer = {
