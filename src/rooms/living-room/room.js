@@ -3,26 +3,29 @@
     id: "living-room",
     name: "Living Room",
     background: "assets/images/backgrounds/middlefloor.png",
+    interactables: [
+      { id: "tv", label: "TV", x: 0.62, y: 0.48, radius: 0.08 },
+      { id: "frontDoor", label: "Front Door", x: 0.9, y: 0.48, radius: 0.06 },
+      { id: "toyRobot", label: "Toy Robot", x: 0.5, y: 0.78, radius: 0.06 },
+    ],
     gates: [
       {
         side: "left",
         targetRoomId: "kitchen",
-        range: { start: 0.4, end: 0.82 },
-        spawn: { x: 0.82, y: 0.62 },
+        range: { start: 0.34, end: 0.88 },
+        spawn: { x: 0.84, y: 0.62 },
       },
       {
-        area: {
-          x: { start: 0.03, end: 0.28 },
-          y: { start: 0.06, end: 0.34 },
-        },
+        side: "right",
         targetRoomId: "children-room",
-        spawn: { x: 0.1, y: 0.72 },
+        range: { start: 0.28, end: 0.8 },
+        spawn: { x: 0.08, y: 0.62 },
       },
       {
         side: "bottom",
         targetRoomId: "basement",
-        range: { start: 0.3, end: 0.7 },
-        spawn: { x: 0.46, y: 0.08 },
+        range: { start: 0.34, end: 0.68 },
+        spawn: { x: 0.5, y: 0.08 },
       },
     ],
   });
