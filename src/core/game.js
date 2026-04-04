@@ -5,26 +5,24 @@
     const sprite = { ...window.PlayerConfig.sprite };
     const input = window.InputController.createInputController(window);
     const roomRegistry = window.RoomRegistry;
-    const roomImages = {};
-
-    let currentRoomId = "living-room";
-    let position = { x: 0, y: 0 };
-    let roomBounds = { width: canvas.width, height: canvas.height };
-    let lastTime = performance.now();
-    let animationTime = 0;
-    let frame = 0;
-    let direction = 0;
-    let spriteImage = null;
-    let animationFrameId = 0;
+    const state = window.GameState.createGameState(canvas);
 
     function getCurrentRoom() {
-      return roomRegistry.getRoom(currentRoomId);
+      return roomRegistry.getRoom(state.room.currentRoomId);
     }
 
     function updateRoomBounds() {
-      roomBounds = { width: canvas.width, height: canvas.height };
+      state.room.bounds = {
+        width: canvas.width,
+        height: canvas.height,
+      };
+
       const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
-      position = window.MovementController.clampPosition(position, roomBounds, spriteSize);
+      state.player.position = window.MovementController.clampPosition(
+        state.player.position,
+        state.room.bounds,
+        spriteSize,
+      );
     }
 
     function resizeCanvas() {
@@ -44,35 +42,40 @@
       const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
 
       if (dx === 0 && dy === 0) {
-        frame = 0;
+        state.player.frame = 0;
         return;
       }
 
-      const nextDirection = window.MovementController.getDirection(direction, dx, dy);
-      if (nextDirection !== direction) {
-        direction = nextDirection;
-        frame = 0;
+      const nextDirection = window.MovementController.getDirection(
+        state.player.direction,
+        dx,
+        dy,
+      );
+
+      if (nextDirection !== state.player.direction) {
+        state.player.direction = nextDirection;
+        state.player.frame = 0;
       } else {
-        direction = nextDirection;
+        state.player.direction = nextDirection;
       }
 
       const speed = window.MovementController.getMoveSpeed(input, window.PlayerConfig.speed);
 
-      position = window.MovementController.clampPosition(
+      state.player.position = window.MovementController.clampPosition(
         {
-          x: position.x + dx * speed * dt,
-          y: position.y + dy * speed * dt,
+          x: state.player.position.x + dx * speed * dt,
+          y: state.player.position.y + dy * speed * dt,
         },
-        roomBounds,
+        state.room.bounds,
         spriteSize,
       );
 
-      animationTime += dt;
+      state.animation.elapsed += dt;
       const fps = window.MovementController.getAnimationFps(input, window.PlayerConfig.fps);
-      if (animationTime >= 1 / fps) {
-        const maxCols = window.PlayerConfig.animationColumns[direction] || sprite.cols;
-        frame = (frame + 1) % maxCols;
-        animationTime = 0;
+      if (state.animation.elapsed >= 1 / fps) {
+        const maxCols = window.PlayerConfig.animationColumns[state.player.direction] || sprite.cols;
+        state.player.frame = (state.player.frame + 1) % maxCols;
+        state.animation.elapsed = 0;
       }
 
       trySwitchRoom(spriteSize);
@@ -89,18 +92,18 @@
           continue;
         }
 
-        currentRoomId = gate.targetRoomId;
-        position = getSpawnPosition(gate.spawn, spriteSize);
-        frame = 0;
+        state.room.currentRoomId = gate.targetRoomId;
+        state.player.position = getSpawnPosition(gate.spawn, spriteSize);
+        state.player.frame = 0;
         return;
       }
     }
 
     function isGateTriggered(gate, spriteSize) {
-      const playerCenterX = position.x + spriteSize.width * 0.5;
-      const playerCenterY = position.y + spriteSize.height * 0.5;
-      const xRatio = playerCenterX / roomBounds.width;
-      const yRatio = playerCenterY / roomBounds.height;
+      const playerCenterX = state.player.position.x + spriteSize.width * 0.5;
+      const playerCenterY = state.player.position.y + spriteSize.height * 0.5;
+      const xRatio = playerCenterX / state.room.bounds.width;
+      const yRatio = playerCenterY / state.room.bounds.height;
       const threshold = gate.threshold || 24;
 
       if (gate.area) {
@@ -111,21 +114,25 @@
       }
 
       if (gate.side === "left") {
-        return position.x <= threshold && yRatio >= gate.range.start && yRatio <= gate.range.end;
+        return state.player.position.x <= threshold
+          && yRatio >= gate.range.start
+          && yRatio <= gate.range.end;
       }
 
       if (gate.side === "right") {
-        return position.x + spriteSize.width >= roomBounds.width - threshold
+        return state.player.position.x + spriteSize.width >= state.room.bounds.width - threshold
           && yRatio >= gate.range.start
           && yRatio <= gate.range.end;
       }
 
       if (gate.side === "top") {
-        return position.y <= threshold && xRatio >= gate.range.start && xRatio <= gate.range.end;
+        return state.player.position.y <= threshold
+          && xRatio >= gate.range.start
+          && xRatio <= gate.range.end;
       }
 
       if (gate.side === "bottom") {
-        return position.y + spriteSize.height >= roomBounds.height - threshold
+        return state.player.position.y + spriteSize.height >= state.room.bounds.height - threshold
           && xRatio >= gate.range.start
           && xRatio <= gate.range.end;
       }
@@ -136,40 +143,42 @@
     function getSpawnPosition(spawn, spriteSize) {
       return window.MovementController.clampPosition(
         {
-          x: (roomBounds.width - spriteSize.width) * spawn.x,
-          y: (roomBounds.height - spriteSize.height) * spawn.y,
+          x: (state.room.bounds.width - spriteSize.width) * spawn.x,
+          y: (state.room.bounds.height - spriteSize.height) * spawn.y,
         },
-        roomBounds,
+        state.room.bounds,
         spriteSize,
       );
     }
 
     function render() {
       const currentRoom = getCurrentRoom();
-      const backgroundImage = currentRoom ? roomImages[currentRoom.id] : null;
+      const backgroundImage = currentRoom
+        ? state.room.images[currentRoom.id]
+        : null;
 
       window.PlayerRenderer.drawRoom(context, canvas, {
         backgroundImage,
       });
       window.PlayerRenderer.drawPlayer(
         context,
-        spriteImage,
+        state.player.spriteImage,
         sprite,
         window.PlayerConfig.animationColumns,
-        direction,
-        frame,
-        position,
+        state.player.direction,
+        state.player.frame,
+        state.player.position,
       );
     }
 
     function loop(now) {
-      const dt = Math.min(0.05, (now - lastTime) / 1000);
-      lastTime = now;
+      const dt = Math.min(0.05, (now - state.animation.lastTime) / 1000);
+      state.animation.lastTime = now;
 
       updatePosition(dt);
       render();
 
-      animationFrameId = requestAnimationFrame(loop);
+      state.animation.frameRequestId = requestAnimationFrame(loop);
     }
 
     function loadRoomImages() {
@@ -183,7 +192,7 @@
 
         const image = new Image();
         image.src = roomConfig.background;
-        roomImages[roomId] = image;
+        state.room.images[roomId] = image;
       });
     }
 
@@ -193,16 +202,16 @@
       image.onload = () => {
         sprite.sheetW = image.width;
         sprite.sheetH = image.height;
-        spriteImage = image;
+        state.player.spriteImage = image;
 
         loadRoomImages();
         resizeCanvas();
 
         const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
-        position = getSpawnPosition({ x: 0.5, y: 0.65 }, spriteSize);
+        state.player.position = getSpawnPosition({ x: 0.5, y: 0.65 }, spriteSize);
 
         render();
-        animationFrameId = requestAnimationFrame(loop);
+        state.animation.frameRequestId = requestAnimationFrame(loop);
       };
 
       image.onerror = () => {
@@ -216,7 +225,7 @@
     return {
       init,
       destroy() {
-        cancelAnimationFrame(animationFrameId);
+        cancelAnimationFrame(state.animation.frameRequestId);
         window.removeEventListener("resize", resizeCanvas);
         input.dispose();
       },
