@@ -781,6 +781,13 @@
       document.body.classList.remove("end-safe", "end-almost");
       document.body.classList.add("end-dark");
       renderDialogue();
+      if (state.timers.menuRedirectTimeoutId) {
+        window.clearTimeout(state.timers.menuRedirectTimeoutId);
+      }
+      state.timers.menuRedirectTimeoutId = window.setTimeout(() => {
+        state.timers.menuRedirectTimeoutId = 0;
+        returnToMainMenu();
+      }, 4000);
     }
 
     function updateNightClock(dt) {
@@ -949,6 +956,9 @@
     }
 
     function returnToMainMenu() {
+      if (audio && typeof audio.stopAll === "function") {
+        audio.stopAll();
+      }
       window.location.href = "index.html";
     }
 
