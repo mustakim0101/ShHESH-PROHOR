@@ -126,8 +126,56 @@
     return clampPosition(currentPosition, bounds, spriteSize);
   }
 
+  function getCandidateOffsets(distance) {
+    const offsets = [];
+
+    for (let x = -distance; x <= distance; x += distance) {
+      for (let y = -distance; y <= distance; y += distance) {
+        if (x === 0 && y === 0) {
+          continue;
+        }
+
+        offsets.push({ x, y });
+      }
+    }
+
+    return offsets.sort((left, right) => Math.hypot(left.x, left.y) - Math.hypot(right.x, right.y));
+  }
+
+  function findNearestWalkablePosition(position, bounds, spriteSize, room) {
+    const clampedStart = clampPosition(position, bounds, spriteSize);
+
+    if (isWalkablePosition(clampedStart, bounds, spriteSize, room)) {
+      return clampedStart;
+    }
+
+    // Room transfers can land beside a stair rail or blocked strip.
+    // Search nearby spots so each spawn still resolves onto valid floor.
+    for (let distance = 8; distance <= 96; distance += 8) {
+      const offsets = getCandidateOffsets(distance);
+
+      for (const offset of offsets) {
+        const candidate = clampPosition(
+          {
+            x: clampedStart.x + offset.x,
+            y: clampedStart.y + offset.y,
+          },
+          bounds,
+          spriteSize,
+        );
+
+        if (isWalkablePosition(candidate, bounds, spriteSize, room)) {
+          return candidate;
+        }
+      }
+    }
+
+    return clampedStart;
+  }
+
   window.MovementController = {
     clampPosition,
+    findNearestWalkablePosition,
     getAnimationFps,
     getDirection,
     getFootProbe,

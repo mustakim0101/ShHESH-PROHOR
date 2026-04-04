@@ -1,4 +1,6 @@
 (function () {
+  const ROOM_IDS = ["living-room", "kitchen", "children-room", "basement"];
+
   const COPY = {
     event01: {
       title: "The Contradiction",
@@ -41,6 +43,14 @@
     const state = window.GameState.createGameState(canvas);
     const audio = window.AudioManager || null;
     const ui = getUiElements();
+    let currentGate = null;
+    let gateCooldown = 0;
+
+    // Flip this in the browser console with:
+    // window.SheshProhorDebug.showCollisionOverlay = true
+    window.SheshProhorDebug = window.SheshProhorDebug || {
+      showCollisionOverlay: false,
+    };
 
     function getUiElements() {
       return {
@@ -61,6 +71,10 @@
 
     function getCurrentRoom() {
       return roomRegistry.getRoom(state.room.currentRoomId);
+    }
+
+    function isCollisionDebugEnabled() {
+      return Boolean(window.SheshProhorDebug && window.SheshProhorDebug.showCollisionOverlay);
     }
 
     function updateRoomBounds() {
@@ -150,6 +164,218 @@
       }
     }
 
+    function getRoomName(roomId) {
+      const room = roomRegistry.getRoom(roomId);
+      return room ? room.name : roomId;
+    }
+
+    function isValidSpawnPosition(position, room, spriteSize) {
+      return window.MovementController.isWalkablePosition(
+        position,
+        state.room.bounds,
+        spriteSize,
+        room,
+      );
+    }
+
+    function getSafeSpawnPosition(spawn, spriteSize, roomId) {
+      const targetRoom = roomRegistry.getRoom(roomId);
+      const requestedPosition = window.MovementController.clampPosition(
+        {
+          x: (state.room.bounds.width - spriteSize.width) * spawn.x,
+          y: (state.room.bounds.height - spriteSize.height) * spawn.y,
+        },
+        state.room.bounds,
+        spriteSize,
+      );
+
+      if (!targetRoom) {
+        return requestedPosition;
+      }
+
+      // If a stair spawn lands on a blocked strip, nudge it to the closest valid floor tile.
+      return window.MovementController.findNearestWalkablePosition(
+        requestedPosition,
+        state.room.bounds,
+        spriteSize,
+        targetRoom,
+      );
+    }
+
+    function getGateDebugRect(gate, spriteSize) {
+      if (gate.area) {
+        return {
+          x: gate.area.x.start * state.room.bounds.width,
+          y: gate.area.y.start * state.room.bounds.height,
+          width: (gate.area.x.end - gate.area.x.start) * state.room.bounds.width,
+          height: (gate.area.y.end - gate.area.y.start) * state.room.bounds.height,
+        };
+      }
+
+      const threshold = gate.threshold || 24;
+
+      if (gate.side === "left") {
+        return {
+          x: 0,
+          y: gate.range.start * state.room.bounds.height,
+          width: threshold,
+          height: (gate.range.end - gate.range.start) * state.room.bounds.height,
+        };
+      }
+
+      if (gate.side === "right") {
+        return {
+          x: state.room.bounds.width - threshold,
+          y: gate.range.start * state.room.bounds.height,
+          width: threshold,
+          height: (gate.range.end - gate.range.start) * state.room.bounds.height,
+        };
+      }
+
+      if (gate.side === "top") {
+        return {
+          x: gate.range.start * state.room.bounds.width,
+          y: 0,
+          width: (gate.range.end - gate.range.start) * state.room.bounds.width,
+          height: threshold,
+        };
+      }
+
+      if (gate.side === "bottom") {
+        return {
+          x: gate.range.start * state.room.bounds.width,
+          y: state.room.bounds.height - threshold,
+          width: (gate.range.end - gate.range.start) * state.room.bounds.width,
+          height: threshold,
+        };
+      }
+
+      return null;
+    }
+
+    function drawDebugZone(zone, fillStyle, strokeStyle) {
+      const x = zone.x.start * state.room.bounds.width;
+      const y = zone.y.start * state.room.bounds.height;
+      const width = (zone.x.end - zone.x.start) * state.room.bounds.width;
+      const height = (zone.y.end - zone.y.start) * state.room.bounds.height;
+
+      context.save();
+      context.fillStyle = fillStyle;
+      context.strokeStyle = strokeStyle;
+      context.lineWidth = 2;
+      context.fillRect(x, y, width, height);
+      context.strokeRect(x, y, width, height);
+      context.restore();
+    }
+
+    function drawDebugMarker(position, label, color) {
+      const footProbe = window.MovementController.getFootProbe(
+        position,
+        window.PlayerRenderer.getSpriteSize(sprite),
+        state.room.bounds,
+      );
+      const x = footProbe.x * state.room.bounds.width;
+      const y = footProbe.y * state.room.bounds.height;
+
+      context.save();
+      context.strokeStyle = color;
+      context.fillStyle = color;
+      context.lineWidth = 2;
+      context.beginPath();
+      context.moveTo(x - 8, y);
+      context.lineTo(x + 8, y);
+      context.moveTo(x, y - 8);
+      context.lineTo(x, y + 8);
+      context.stroke();
+      context.font = '12px "JetBrains Mono", monospace';
+      context.fillText(label, x + 10, y - 10);
+      context.restore();
+    }
+
+    function drawCollisionDebugOverlay(currentRoom, spriteSize) {
+      if (!isCollisionDebugEnabled() || !currentRoom) {
+        return;
+      }
+
+      (currentRoom.walkableZones || []).forEach((zone) => {
+        drawDebugZone(zone, "rgba(72, 201, 176, 0.18)", "rgba(72, 201, 176, 0.9)");
+      });
+
+      (currentRoom.blockedZones || []).forEach((zone) => {
+        drawDebugZone(zone, "rgba(231, 76, 60, 0.18)", "rgba(231, 76, 60, 0.9)");
+      });
+
+      (currentRoom.gates || []).forEach((gate) => {
+        const rect = getGateDebugRect(gate, spriteSize);
+        if (!rect) {
+          return;
+        }
+
+        context.save();
+        context.strokeStyle = "rgba(255, 214, 102, 0.95)";
+        context.lineWidth = 2;
+        context.setLineDash([8, 6]);
+        context.strokeRect(rect.x, rect.y, rect.width, rect.height);
+        context.restore();
+      });
+
+      ROOM_IDS.forEach((roomId) => {
+        const sourceRoom = roomRegistry.getRoom(roomId);
+        if (!sourceRoom || !Array.isArray(sourceRoom.gates)) {
+          return;
+        }
+
+        sourceRoom.gates.forEach((gate) => {
+          if (gate.targetRoomId !== currentRoom.id) {
+            return;
+          }
+
+          const spawnPosition = getSafeSpawnPosition(gate.spawn, spriteSize, currentRoom.id);
+          const requestedPosition = window.MovementController.clampPosition(
+            {
+              x: (state.room.bounds.width - spriteSize.width) * gate.spawn.x,
+              y: (state.room.bounds.height - spriteSize.height) * gate.spawn.y,
+            },
+            state.room.bounds,
+            spriteSize,
+          );
+          const moved = requestedPosition.x !== spawnPosition.x || requestedPosition.y !== spawnPosition.y;
+          drawDebugMarker(
+            spawnPosition,
+            moved ? `${sourceRoom.name} spawn*` : `${sourceRoom.name} spawn`,
+            moved ? "rgba(255, 159, 67, 0.98)" : "rgba(93, 173, 226, 0.98)",
+          );
+        });
+      });
+
+      const footProbe = window.MovementController.getFootProbe(
+        state.player.position,
+        spriteSize,
+        state.room.bounds,
+      );
+      const playerFootX = footProbe.x * state.room.bounds.width;
+      const playerFootY = footProbe.y * state.room.bounds.height;
+
+      context.save();
+      context.fillStyle = isValidSpawnPosition(state.player.position, currentRoom, spriteSize)
+        ? "rgba(46, 204, 113, 0.95)"
+        : "rgba(255, 99, 71, 0.95)";
+      context.beginPath();
+      context.arc(playerFootX, playerFootY, 6, 0, Math.PI * 2);
+      context.fill();
+      context.restore();
+    }
+
+    function getGateHint(gate) {
+      if (!gate) {
+        return "";
+      }
+
+      // Gates can define friendly labels, but we also keep a fallback.
+      const actionLabel = gate.label || `enter ${getRoomName(gate.targetRoomId)}`;
+      return `Press E to ${actionLabel}`;
+    }
+
     function setPhoneStatus() {
       if (!ui.phoneStatus) {
         return;
@@ -189,7 +415,10 @@
         choices: config.choices.map((choice) => ({ ...choice })),
       };
       state.ui.selectedChoiceIndex = 0;
-      startTimer(config.timerSeconds || 0, () => resolveDialogueChoice(config.choices[config.choices.length - 1].id));
+      startTimer(
+        config.timerSeconds || 0,
+        () => resolveDialogueChoice(config.choices[config.choices.length - 1].id),
+      );
       renderDialogue();
     }
 
@@ -260,6 +489,10 @@
       state.systems.night.remaining = Math.max(0, state.systems.night.remaining - dt);
     }
 
+    function updateGateCooldown(dt) {
+      gateCooldown = Math.max(0, gateCooldown - dt);
+    }
+
     function getCurrentInteractables() {
       const room = getCurrentRoom();
       return room && room.interactables ? room.interactables : [];
@@ -292,7 +525,10 @@
     function syncBodyState() {
       document.body.classList.toggle("blackout", state.systems.blackout);
       document.body.classList.toggle("candle-on", state.systems.candleLit);
-      document.body.classList.toggle("tv-flicker", state.events.activeEventId === "event01" || state.events.activeEventId === "event04");
+      document.body.classList.toggle(
+        "tv-flicker",
+        state.events.activeEventId === "event01" || state.events.activeEventId === "event04",
+      );
     }
 
     function triggerEvent01() {
@@ -419,9 +655,11 @@
     }
 
     function maybeTriggerRoomEvents() {
-      if (state.events.questionUnlocked
+      if (
+        state.events.questionUnlocked
         && !state.events.completed.event02
-        && state.room.currentRoomId === "children-room") {
+        && state.room.currentRoomId === "children-room"
+      ) {
         triggerEvent02();
       }
 
@@ -514,7 +752,8 @@
       }
 
       if (input.consumePressed("ArrowUp")) {
-        state.ui.selectedChoiceIndex = (state.ui.selectedChoiceIndex + dialogue.choices.length - 1) % dialogue.choices.length;
+        state.ui.selectedChoiceIndex = (state.ui.selectedChoiceIndex + dialogue.choices.length - 1)
+          % dialogue.choices.length;
         renderDialogue();
       }
 
@@ -548,7 +787,7 @@
         if (audio) {
           audio.setMovementActive(false, dt);
         }
-        return { dx: 0, dy: 0 };
+        return;
       }
 
       const vector = window.MovementController.getMovementVector(input.keys);
@@ -561,7 +800,7 @@
         if (audio) {
           audio.setMovementActive(false, dt);
         }
-        return { dx: 0, dy: 0 };
+        return;
       }
 
       const nextDirection = window.MovementController.getDirection(
@@ -602,35 +841,51 @@
         state.player.frame = (state.player.frame + 1) % maxCols;
         state.animation.elapsed = 0;
       }
-
-      trySwitchRoom(spriteSize, vector);
-      return vector;
     }
 
-    function trySwitchRoom(spriteSize, movementVector) {
+    function findActiveGate(spriteSize) {
+      if (gateCooldown > 0) {
+        return null;
+      }
+
       const currentRoom = getCurrentRoom();
       if (!currentRoom || !currentRoom.gates) {
-        return;
+        return null;
       }
 
       for (const gate of currentRoom.gates) {
-        if (!isGateTriggered(gate, spriteSize, movementVector)) {
-          continue;
+        if (isGateTriggered(gate, spriteSize)) {
+          return gate;
         }
-
-        state.room.currentRoomId = gate.targetRoomId;
-        state.room.visited[gate.targetRoomId] = true;
-        state.player.position = getSpawnPosition(gate.spawn, spriteSize);
-        state.player.frame = 0;
-        if (audio) {
-          audio.setRoom(gate.targetRoomId);
-        }
-        maybeTriggerRoomEvents();
-        return;
       }
+
+      return null;
     }
 
-    function isGateTriggered(gate, spriteSize, movementVector) {
+    function trySwitchRoom(spriteSize) {
+      if (!currentGate || !input.consumePressed("KeyE")) {
+        return;
+      }
+
+      // Touching a gate only prepares the transition.
+      // Pressing E performs the room change intentionally.
+      state.room.currentRoomId = currentGate.targetRoomId;
+      state.room.visited[currentGate.targetRoomId] = true;
+      state.player.position = getSafeSpawnPosition(
+        currentGate.spawn,
+        spriteSize,
+        currentGate.targetRoomId,
+      );
+      state.player.frame = 0;
+      if (audio) {
+        audio.setRoom(currentGate.targetRoomId);
+      }
+      maybeTriggerRoomEvents();
+      currentGate = null;
+      gateCooldown = 0.2;
+    }
+
+    function isGateTriggered(gate, spriteSize) {
       const footProbe = window.MovementController.getFootProbe(
         state.player.position,
         spriteSize,
@@ -639,10 +894,6 @@
       const xRatio = footProbe.x;
       const yRatio = footProbe.y;
       const threshold = gate.threshold || 24;
-
-      if (!isGateActivationSatisfied(gate, movementVector)) {
-        return false;
-      }
 
       if (gate.area) {
         return xRatio >= gate.area.x.start
@@ -678,42 +929,8 @@
       return false;
     }
 
-    function isGateActivationSatisfied(gate, movementVector) {
-      if (!gate.activation || !movementVector) {
-        return true;
-      }
-
-      const directions = [];
-      if (movementVector.dx <= -0.15) {
-        directions.push("left");
-      }
-      if (movementVector.dx >= 0.15) {
-        directions.push("right");
-      }
-      if (movementVector.dy <= -0.15) {
-        directions.push("up");
-      }
-      if (movementVector.dy >= 0.15) {
-        directions.push("down");
-      }
-
-      const allowedDirections = gate.activation.anyOfDirections || [];
-      if (!allowedDirections.length) {
-        return true;
-      }
-
-      return allowedDirections.some((direction) => directions.includes(direction));
-    }
-
     function getSpawnPosition(spawn, spriteSize) {
-      return window.MovementController.clampPosition(
-        {
-          x: (state.room.bounds.width - spriteSize.width) * spawn.x,
-          y: (state.room.bounds.height - spriteSize.height) * spawn.y,
-        },
-        state.room.bounds,
-        spriteSize,
-      );
+      return getSafeSpawnPosition(spawn, spriteSize, state.room.currentRoomId);
     }
 
     function render() {
@@ -739,12 +956,20 @@
         state.player.frame,
         state.player.position,
       );
+      drawCollisionDebugOverlay(currentRoom, window.PlayerRenderer.getSpriteSize(sprite));
     }
 
     function updateInteractionState() {
       const interactable = getNearbyInteractable();
-      if (interactable) {
+      const gateHint = currentGate ? getGateHint(currentGate) : "";
+
+      // E is reserved for gate travel, while SPACE keeps object interactions.
+      if (interactable && gateHint) {
+        setInteractionHint(`${gateHint}. Press SPACE: ${interactable.label}`);
+      } else if (interactable) {
         setInteractionHint(`Press SPACE: ${interactable.label}`);
+      } else if (gateHint) {
+        setInteractionHint(gateHint);
       }
 
       if (input.consumePressed("Space") && interactable) {
@@ -758,10 +983,14 @@
 
       handleChoiceInput();
       updatePosition(dt);
+      const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
+      updateGateCooldown(dt);
+      currentGate = findActiveGate(spriteSize);
       updateTimer(dt);
       updateNightClock(dt);
       updateBattery(dt);
       updateInteractionState();
+      trySwitchRoom(spriteSize);
       syncBodyState();
       updateHud();
       renderDialogue();
@@ -775,9 +1004,7 @@
     }
 
     function loadRoomImages() {
-      const rooms = ["living-room", "kitchen", "children-room", "basement"];
-
-      rooms.forEach((roomId) => {
+      ROOM_IDS.forEach((roomId) => {
         const roomConfig = roomRegistry.getRoom(roomId);
         if (!roomConfig) {
           return;
@@ -802,6 +1029,7 @@
 
         const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
         state.player.position = getSpawnPosition({ x: 0.5, y: 0.65 }, spriteSize);
+        currentGate = findActiveGate(spriteSize);
 
         if (audio) {
           audio.init();

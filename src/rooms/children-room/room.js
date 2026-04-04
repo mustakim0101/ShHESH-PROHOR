@@ -39,12 +39,12 @@
     gates: [
       {
         area: {
-          x: { start: 0.08, end: 0.16 },
-          y: { start: 0.8, end: 0.95 },
+          x: { start: 0.05, end: 0.2 },
+          y: { start: 0.74, end: 0.97 },
         },
-        activation: { anyOfDirections: ["left", "down"] },
+        label: "go downstairs",
         targetRoomId: "living-room",
-        spawn: { x: 0.11, y: 0.66 },
+        spawn: { x: 0.05, y: 0.46 },
       },
     ],
   });
