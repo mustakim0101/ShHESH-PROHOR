@@ -1,5 +1,6 @@
-const content = {
-  rooms: {
+(function () {
+  const content = {
+    rooms: {
     livingRoom: {
       id: "livingRoom",
       name: "Living Room",
@@ -201,18 +202,18 @@ const content = {
     },
     event05: {
       id: "event05",
-      title: "Phone at Zero",
-      trigger: "The battery drops low enough that the phone starts to fail in the player's hand.",
+      title: "Stay Together",
+      trigger: "After the knock at the front door, the mother pulls back from the entrance and tries to keep the family together until morning.",
       summary:
-        "If the charger was not found earlier, the phone becomes one more thing the player loses. If it was found, the player gets one small piece of control back.",
-      taskIds: ["checkPhone", "findCharger"],
-      choiceIds: ["useLastBattery", "saveBattery"],
-      outcomeIds: ["phoneDies", "phoneRecovered"],
+        "The apartment is still dark, the candle is still small, and the children need a place to settle. The player heads back to the children's room and makes one final promise to hold the night together.",
+      taskIds: ["returnToChildrenRoom", "checkYoungerChildAgain", "stayWithFamily"],
+      choiceIds: ["stayTogether"],
+      outcomeIds: ["familyHeldTogether"],
       script: {
-        setup: "The battery warning arrives too late to be useful.",
-        beat1: "The screen flickers while you are still trying to read it.",
-        beat2: "If you prepared earlier, the charger matters now. If you did not, the phone leaves the night for good.",
-        resolution: "A dead phone is not just silence. It is a permanent blind spot.",
+        setup: "The knocking passes, but the apartment does not become safe again.",
+        beat1: "The candle gives you just enough light to see their faces.",
+        beat2: "That small circle of light becomes the only plan that still matters.",
+        resolution: "The rest of the night is no longer about answers. It is about staying together until morning.",
       },
     },
     event06: {
@@ -378,6 +379,9 @@ const content = {
       goToDoor: "Go to the front door.",
       checkChild: "Find the older child.",
       hideOrRespond: "Decide whether to hide or respond.",
+      returnToChildrenRoom: "Go back to the children's room.",
+      checkYoungerChildAgain: "Check on the younger child.",
+      stayWithFamily: "Stay with the children until morning.",
       findCharger: "Find the charger.",
       goToChildrensRoom: "Go to the children's room.",
       searchBasement: "Search the basement.",
@@ -391,7 +395,7 @@ const content = {
       event02: ["Go to the younger child.", "Listen to the counting.", "Answer the question."],
       event03: ["Run to the kitchen.", "Open the third drawer.", "Take the candle.", "Light it."],
       event04: ["Go to the front door.", "Find the older child.", "Stay quiet or answer."],
-      event05: ["Check the phone.", "Decide whether to use the last battery.", "Find the charger if you can."],
+      event05: ["Go back to the children's room.", "Check on the younger child.", "Stay with the family until morning."],
       event06: ["Go to the children's room.", "See that the bed is empty.", "Run to the basement.", "Reach the older child before the outside door."],
       event07: ["Gather the family.", "Decide where to wait.", "Make the final choice."],
     },
@@ -403,9 +407,12 @@ const content = {
     },
     status: {
       lowBattery: "Phone battery is low.",
+      candleLit: "Candle lit. Stay close and keep moving.",
       signalLost: "Signal lost.",
       threatRising: "Something feels wrong.",
       familySafe: "The family is together.",
+      familyWaiting: "Keep the family together until dawn.",
+      familyHeld: "The family stays together for now.",
     },
     event01: {
       intro:
@@ -461,14 +468,12 @@ const content = {
       },
     },
     event05: {
-      intro: "The phone flickers. You may only get one more use out of it.",
+      intro: "The knocking fades. The children still need you more than the door does.",
       choices: {
-        useLastBattery: "Use the last of the battery now.",
-        saveBattery: "Put it away and save what is left.",
+        stayTogether: "Stay with them until morning.",
       },
       outcomes: {
-        phoneDies: "The battery gives out. The phone is gone from the night.",
-        phoneRecovered: "The charger buys you a little more time.",
+        familyHeldTogether: "You stop moving for the first time all night. The candle burns low, but everyone is still here.",
       },
     },
     event06: {
@@ -496,6 +501,7 @@ const content = {
       },
     },
   },
-};
+  };
 
-export default content;
+  window.GameContent = content;
+})();

@@ -1,37 +1,11 @@
 (function () {
   const ROOM_IDS = ["living-room", "kitchen", "children-room", "basement"];
 
-  const COPY = {
-    event01: {
-      title: "The Contradiction",
-      body: "The TV, radio, and phone are all telling different versions of the same night.",
-      timerSeconds: 60,
-      choices: [
-        { id: "trustTv", label: "Trust the TV." },
-        { id: "trustRadio", label: "Trust the radio." },
-        { id: "trustPhone", label: "Trust the phone." },
-      ],
-    },
-    event02: {
-      title: "The Question",
-      body: "The younger child is standing in the doorway, waiting for your answer.",
-      timerSeconds: 50,
-      choices: [
-        { id: "reassure", label: "We're together. Stay close to me." },
-        { id: "deflect", label: "It's late. Try to lie down for a bit." },
-        { id: "staySilent", label: "Say nothing." },
-      ],
-    },
-    event04: {
-      title: "The Knock",
-      body: "Someone knocks at the door the moment the candle is lit.",
-      timerSeconds: 30,
-      choices: [
-        { id: "stayQuiet", label: "Stay quiet." },
-        { id: "speakThroughDoor", label: "Speak through the door." },
-        { id: "moveAway", label: "Pull away and get the child back." },
-      ],
-    },
+  const TASK_IDS = {
+    reachChildrenRoom: "reachChildrenRoom",
+    returnToChildrenRoom: "returnToChildrenRoom",
+    checkYoungerChildAgain: "checkYoungerChildAgain",
+    stayWithFamily: "stayWithFamily",
   };
 
   function createGame(options) {
@@ -72,6 +46,96 @@
     function getCurrentRoom() {
       return roomRegistry.getRoom(state.room.currentRoomId);
     }
+
+    function getContent() {
+      return window.GameContent || null;
+    }
+
+    function getNestedValue(source, path) {
+      return path.reduce((value, key) => {
+        if (!value || typeof value !== "object") {
+          return undefined;
+        }
+
+        return value[key];
+      }, source);
+    }
+
+    function getText(path, fallback) {
+      const content = getContent();
+      const value = getNestedValue(content, path);
+      return typeof value === "string" ? value : fallback;
+    }
+
+    function getChoiceText(eventId, choiceId, fallback) {
+      const choices = getNestedValue(getContent(), ["uiText", eventId, "choices"]);
+      return choices && typeof choices[choiceId] === "string" ? choices[choiceId] : fallback;
+    }
+
+    function getEventCopy(eventId, fallback) {
+      return {
+        title: getText(["events", eventId, "title"], fallback.title),
+        body: getText(["uiText", eventId, "intro"], fallback.body),
+        timerSeconds: fallback.timerSeconds,
+        choices: fallback.choices.map((choice) => ({
+          id: choice.id,
+          label: getChoiceText(eventId, choice.id, choice.label),
+        })),
+      };
+    }
+
+    function getTaskLabel(taskId, fallback) {
+      return getText(["uiText", "tasks", taskId], fallback);
+    }
+
+    function getPromptText(promptId, fallback) {
+      return getText(["uiText", "prompts", promptId], fallback);
+    }
+
+    function getStatusText(statusId, fallback) {
+      return getText(["uiText", "status", statusId], fallback);
+    }
+
+    const COPY = {
+      event01: getEventCopy("event01", {
+        title: "The Contradiction",
+        body: "The TV, radio, and phone are all telling different versions of the same night.",
+        timerSeconds: 60,
+        choices: [
+          { id: "trustTv", label: "Trust the TV." },
+          { id: "trustRadio", label: "Trust the radio." },
+          { id: "trustPhone", label: "Trust the phone." },
+        ],
+      }),
+      event02: getEventCopy("event02", {
+        title: "The Question",
+        body: "The younger child is standing in the doorway, waiting for your answer.",
+        timerSeconds: 50,
+        choices: [
+          { id: "reassure", label: "We're together. Stay close to me." },
+          { id: "deflect", label: "It's late. Try to lie down for a bit." },
+          { id: "staySilent", label: "Say nothing." },
+        ],
+      }),
+      event04: getEventCopy("event04", {
+        title: "The Knock",
+        body: "Someone knocks at the door the moment the candle is lit.",
+        timerSeconds: 30,
+        choices: [
+          { id: "stayQuiet", label: "Stay quiet." },
+          { id: "speakThroughDoor", label: "Speak through the door." },
+          { id: "moveAway", label: "Pull away and get the child back." },
+        ],
+      }),
+      event05: getEventCopy("event05", {
+        title: "Stay Together",
+        body: "The knocking fades. The children still need you more than the door does.",
+        timerSeconds: 20,
+        choices: [
+          { id: "stayTogether", label: "Stay with them until morning." },
+        ],
+      }),
+    };
 
     function isCollisionDebugEnabled() {
       return Boolean(window.SheshProhorDebug && window.SheshProhorDebug.showCollisionOverlay);
@@ -380,8 +444,19 @@
       if (!ui.phoneStatus) {
         return;
       }
+
+      if (state.events.completed.event05) {
+        ui.phoneStatus.textContent = getStatusText("familyHeld", "The family stays together for now.");
+        return;
+      }
+
+      if (state.systems.candleLit) {
+        ui.phoneStatus.textContent = getStatusText("candleLit", "Candle lit. Stay close and keep moving.");
+        return;
+      }
+
       ui.phoneStatus.textContent = state.systems.blackout
-        ? "The blackout is active. Hurry before the battery drops more."
+        ? getStatusText("lowBattery", "The blackout is active. Hurry before the battery drops more.")
         : "Phone battery matters during the night.";
     }
 
@@ -529,6 +604,7 @@
         "tv-flicker",
         state.events.activeEventId === "event01" || state.events.activeEventId === "event04",
       );
+      document.body.classList.toggle("threat-pulse", state.systems.threat >= 5);
     }
 
     function triggerEvent01() {
@@ -538,8 +614,8 @@
       }
       setTaskQueue([
         { id: "checkTv", label: "Walk to the TV.", completed: false },
-        { id: "checkRadio", label: "Go to the kitchen radio.", completed: false },
-        { id: "checkPhone", label: "Check the phone.", completed: false },
+        { id: "checkRadio", label: getTaskLabel("checkRadio", "Go to the kitchen radio."), completed: false },
+        { id: "checkPhone", label: getTaskLabel("checkPhone", "Check the phone."), completed: false },
       ]);
     }
 
@@ -547,12 +623,14 @@
       if (state.events.completed.event02) {
         return;
       }
+
+      completeTask(TASK_IDS.reachChildrenRoom);
       state.events.activeEventId = "event02";
       setTaskQueue([
-        { id: "goToChild", label: "Go to the younger child.", completed: false },
-        { id: "answerChild", label: "Answer the question.", completed: false },
+        { id: "goToChild", label: getTaskLabel("goToChild", "Go to the younger child."), completed: false },
+        { id: "answerChild", label: getTaskLabel("answerChild", "Answer the question."), completed: false },
       ]);
-      setInteractionHint("Go to the younger child and press SPACE.");
+      setInteractionHint(`Go to the younger child and ${getPromptText("interact", "Press SPACE to interact.").toLowerCase()}`);
     }
 
     function triggerEvent03() {
@@ -566,10 +644,10 @@
         audio.onEvent("event03");
       }
       setTaskQueue([
-        { id: "reachKitchen", label: "Run to the kitchen.", completed: false },
-        { id: "openDrawer", label: "Open the third drawer.", completed: false },
-        { id: "findCandle", label: "Take the candle.", completed: false },
-        { id: "lightCandle", label: "Light it.", completed: false },
+        { id: "reachKitchen", label: getTaskLabel("reachKitchen", "Run to the kitchen."), completed: false },
+        { id: "openDrawer", label: getTaskLabel("openDrawer", "Open the third drawer."), completed: false },
+        { id: "findCandle", label: getTaskLabel("findCandle", "Take the candle."), completed: false },
+        { id: "lightCandle", label: getTaskLabel("lightCandle", "Light the candle."), completed: false },
       ]);
       setInteractionHint("The room is dark now. Go to the kitchen and find the candle.");
     }
@@ -583,11 +661,52 @@
         audio.onEvent("event04");
       }
       setTaskQueue([
-        { id: "goToDoor", label: "Go to the front door.", completed: false },
-        { id: "checkChild", label: "Find the older child.", completed: false },
-        { id: "hideOrRespond", label: "Stay quiet or answer.", completed: false },
+        { id: "goToDoor", label: getTaskLabel("goToDoor", "Go to the front door."), completed: false },
+        { id: "checkChild", label: getTaskLabel("checkChild", "Find the older child."), completed: false },
+        { id: "hideOrRespond", label: getTaskLabel("hideOrRespond", "Stay quiet or answer."), completed: false },
       ]);
       setInteractionHint("Someone is at the door. Go there or check on the older child.");
+    }
+
+    function triggerEvent05() {
+      if (state.events.completed.event05 || state.events.activeEventId === "event05") {
+        return;
+      }
+
+      state.events.activeEventId = "event05";
+      if (audio) {
+        audio.onEvent("event05");
+      }
+      setTaskQueue([
+        {
+          id: TASK_IDS.returnToChildrenRoom,
+          label: getTaskLabel("returnToChildrenRoom", "Go back to the children's room."),
+          completed: state.room.currentRoomId === "children-room",
+        },
+        {
+          id: TASK_IDS.checkYoungerChildAgain,
+          label: getTaskLabel("checkYoungerChildAgain", "Check on the younger child."),
+          completed: false,
+        },
+        {
+          id: TASK_IDS.stayWithFamily,
+          label: getTaskLabel("stayWithFamily", "Stay with the children until morning."),
+          completed: false,
+        },
+      ]);
+      setInteractionHint("Take the candle back to the children.");
+    }
+
+    function applyEndingState() {
+      document.body.classList.remove("end-safe", "end-almost", "end-dark");
+
+      if (state.systems.threat <= 2.5) {
+        document.body.classList.add("end-safe");
+      } else if (state.systems.threat <= 4) {
+        document.body.classList.add("end-almost");
+      } else {
+        document.body.classList.add("end-dark");
+      }
     }
 
     function resolveDialogueChoice(choiceId) {
@@ -614,8 +733,16 @@
           setThreat(2);
         }
         state.events.questionUnlocked = true;
+        state.events.activeEventId = "event02-pending";
         setInteractionHint("Head to the children's room.");
-        setTaskQueue([]);
+        setTaskQueue([
+          {
+            id: TASK_IDS.reachChildrenRoom,
+            label: getTaskLabel("goToChildrensRoom", "Go to the children's room."),
+            completed: false,
+          },
+        ]);
+        maybeTriggerRoomEvents();
         return;
       }
 
@@ -643,7 +770,16 @@
         } else if (choiceId === "moveAway") {
           setThreat(Math.max(1, state.systems.threat - 0.5));
         }
-        setInteractionHint("Keep moving between rooms and follow the task list.");
+        triggerEvent05();
+        return;
+      }
+
+      if (activeEventId === "event05") {
+        state.events.completed.event05 = true;
+        state.events.choiceHistory.event05 = choiceId;
+        completeTask(TASK_IDS.stayWithFamily);
+        setInteractionHint("Keep the candle close. The family stays together for now.");
+        applyEndingState();
       }
     }
 
@@ -666,6 +802,13 @@
       if (state.events.activeEventId === "event03" && state.room.currentRoomId === "kitchen") {
         completeTask("reachKitchen");
       }
+
+      if (state.events.activeEventId === "event05" && state.room.currentRoomId === "children-room") {
+        completeTask(TASK_IDS.returnToChildrenRoom);
+        if (!state.events.completed.event05 && !state.ui.currentDialogue) {
+          setInteractionHint("Stay close to the younger child and press SPACE.");
+        }
+      }
     }
 
     function handleInteractable(interactable) {
@@ -684,7 +827,7 @@
             completeTask("checkTv");
             maybeOpenEvent01Dialogue();
           }
-          setInteractionHint("The TV keeps flickering through the signal.");
+          setInteractionHint(getText(["dialogue", "tv", "intro"], "The TV keeps flickering through the signal."));
           break;
         case "radio":
           if (state.events.activeEventId === "event01") {
@@ -692,7 +835,7 @@
             completeTask("checkRadio");
             maybeOpenEvent01Dialogue();
           }
-          setInteractionHint("The radio sounds clearer than the TV, but not safer.");
+          setInteractionHint(getText(["dialogue", "radio", "static"], "The radio sounds clearer than the TV, but not safer."));
           break;
         case "phone":
           if (state.events.activeEventId === "event01") {
@@ -700,12 +843,15 @@
             completeTask("checkPhone");
             maybeOpenEvent01Dialogue();
           }
-          setInteractionHint("The phone is still working, but the battery is low.");
+          setInteractionHint(getText(["dialogue", "phone", "lowBatteryWarning"], "The phone is still working, but the battery is low."));
           break;
         case "youngerChild":
           if (state.events.activeEventId === "event02") {
             completeTask("goToChild");
             openDialogue(COPY.event02);
+          } else if (state.events.activeEventId === "event05" && !state.events.completed.event05) {
+            completeTask(TASK_IDS.checkYoungerChildAgain);
+            openDialogue(COPY.event05);
           }
           break;
         case "kitchenDrawer3":
@@ -732,7 +878,7 @@
         case "olderChild":
           if (state.events.activeEventId === "event04") {
             completeTask("checkChild");
-            setInteractionHint("The older child hesitates near the front of the room.");
+            setInteractionHint(getText(["dialogue", "olderChild", "duringKnock"], "The older child hesitates near the front of the room."));
           }
           break;
         case "toyRobot":
@@ -955,6 +1101,9 @@
         state.player.direction,
         state.player.frame,
         state.player.position,
+        {
+          showCandle: state.systems.candleLit,
+        },
       );
       drawCollisionDebugOverlay(currentRoom, window.PlayerRenderer.getSpriteSize(sprite));
     }
@@ -986,6 +1135,7 @@
       const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
       updateGateCooldown(dt);
       currentGate = findActiveGate(spriteSize);
+      maybeTriggerRoomEvents();
       updateTimer(dt);
       updateNightClock(dt);
       updateBattery(dt);
