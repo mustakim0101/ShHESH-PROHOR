@@ -4,27 +4,32 @@
     name: "Basement",
     background: "assets/images/backgrounds/basement.jpg",
     walkableZones: [
+      // Main basement floor.
       {
-        x: { start: 0.05, end: 0.88 },
-        y: { start: 0.47, end: 0.96 },
+        x: { start: 0.05, end: 0.87 },
+        y: { start: 0.48, end: 0.96 },
       },
+      // Lower stair landing where the player steps off onto the floor.
       {
-        x: { start: 0.82, end: 0.9 },
-        y: { start: 0.59, end: 0.89 },
+        x: { start: 0.82, end: 0.99 },
+        y: { start: 0.44, end: 0.66 },
       },
+      // Narrow upper stair lane running down from the staircase.
       {
         x: { start: 0.89, end: 0.99 },
-        y: { start: 0.12, end: 0.9 },
+        y: { start: 0.12, end: 0.46 },
       },
     ],
     blockedZones: [
+      // Upper wall band under the windows.
       {
-        x: { start: 0.04, end: 0.88 },
-        y: { start: 0.04, end: 0.45 },
+        x: { start: 0.04, end: 0.86 },
+        y: { start: 0.04, end: 0.44 },
       },
+      // Solid stair-side wall left of the upper stair lane.
       {
-        x: { start: 0.8, end: 0.89 },
-        y: { start: 0.47, end: 0.69 },
+        x: { start: 0.83, end: 0.89 },
+        y: { start: 0.12, end: 0.35 },
       },
     ],
     interactables: [
@@ -35,12 +40,12 @@
     gates: [
       {
         area: {
-          x: { start: 0.9, end: 0.99 },
-          y: { start: 0.16, end: 0.34 },
+          x: { start: 0.84, end: 0.99 },
+          y: { start: 0.1, end: 0.42 },
         },
-        activation: { anyOfDirections: ["right", "up"] },
+        label: "go upstairs",
         targetRoomId: "living-room",
-        spawn: { x: 0.89, y: 0.84 },
+        spawn: { x: 0.89, y: 0.6 },
       },
     ],
   });
