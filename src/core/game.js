@@ -1,11 +1,14 @@
 (function () {
   const ROOM_IDS = ["living-room", "kitchen", "children-room", "basement"];
+  const BATTERY_DRAIN_PER_SECOND = 40 / (2.5 * 60);
 
   const TASK_IDS = {
     reachChildrenRoom: "reachChildrenRoom",
     returnToChildrenRoom: "returnToChildrenRoom",
     checkYoungerChildAgain: "checkYoungerChildAgain",
     stayWithFamily: "stayWithFamily",
+    goToBasement: "goToBasement",
+    waitForDawn: "waitForDawn",
   };
 
   const LEVEL_COPY = {
@@ -55,9 +58,24 @@
       body: "Take the candle back to the children and hold the family together. Press Enter or Space to begin.",
     },
     level5Complete: {
-      kicker: "Current Ending",
-      title: "Night Held",
-      body: "You kept the family together for now. This is the end of the current playable flow.",
+      kicker: "Level Five Completed",
+      title: "Family Together",
+      body: "You gathered everyone. The basement is the safest place left. Press Enter or Space to continue.",
+    },
+    level6Notice: {
+      kicker: "Last Level",
+      title: "ONE LAST RUN",
+      body: "This is the last level. Get everyone downstairs before the night closes in.",
+    },
+    level6Start: {
+      kicker: "Level Six",
+      title: "Basement Shelter",
+      body: "Get the family to the basement and wait in the safe corner. Time is running out and the battery is close to dying. Press Enter or Space to begin.",
+    },
+    level6Complete: {
+      kicker: "Morning",
+      title: "MORNING CAME",
+      body: "Morning reaches the basement at last. You kept the family safe from the strangers outside.",
     },
   };
 
@@ -273,6 +291,14 @@
       return state.ui.taskQueue.length > 0 && state.ui.taskQueue.every((task) => task.completed);
     }
 
+    function isTaskComplete(taskId) {
+      return state.ui.taskQueue.some((task) => task.id === taskId && task.completed);
+    }
+
+    function isEvent04DecisionReady() {
+      return isTaskComplete("goToDoor") && isTaskComplete("checkChild");
+    }
+
     function renderTaskQueue() {
       if (!ui.taskList) {
         return;
@@ -291,6 +317,15 @@
       if (ui.interactionHint) {
         ui.interactionHint.textContent = text;
       }
+    }
+
+    function triggerAlarmPulse() {
+      document.body.classList.remove("impact-pulse");
+      void document.body.offsetWidth;
+      document.body.classList.add("impact-pulse");
+      window.setTimeout(() => {
+        document.body.classList.remove("impact-pulse");
+      }, 700);
     }
 
     function getRoomName(roomId) {
@@ -525,6 +560,11 @@
         return;
       }
 
+      if (state.events.completed.event06) {
+        ui.phoneStatus.textContent = "The family is safe together in the basement.";
+        return;
+      }
+
       if (state.events.completed.event05) {
         ui.phoneStatus.textContent = getStatusText("familyHeld", "The family stays together for now.");
         return;
@@ -549,10 +589,12 @@
         ui.threatValue.textContent = state.systems.threat.toFixed(1).replace(".0", "");
       }
       if (ui.batteryValue) {
-        ui.batteryValue.textContent = `${Math.round(state.systems.battery)}%`;
+        ui.batteryValue.textContent = state.systems.familySafe
+          ? "--"
+          : `${Math.round(state.systems.battery)}%`;
       }
       if (ui.timerValue) {
-        ui.timerValue.textContent = state.systems.gameOver
+        ui.timerValue.textContent = state.systems.gameOver || state.systems.familySafe
           ? "--"
           : formatTime(state.systems.night.remaining);
       }
@@ -562,26 +604,24 @@
     function updateAtmosphereLighting() {
       const bodyStyle = document.body.style;
 
-      if (!state.systems.blackout) {
+      if (!state.systems.blackout || !state.systems.candleLit) {
         bodyStyle.setProperty("--light-opacity", "0");
         return;
       }
 
       const playerCenter = getPlayerCenter();
-      const xRatio = Math.max(0, Math.min(1, playerCenter.x / state.room.bounds.width));
-      const yRatio = Math.max(0, Math.min(1, playerCenter.y / state.room.bounds.height));
-      const batteryFactor = Math.max(0, Math.min(1, state.systems.battery / 18));
-      const size = state.systems.candleLit
-        ? 0.22
-        : Math.max(0.1, 0.14 + batteryFactor * 0.08);
-      const glowOpacity = state.systems.candleLit
-        ? 0.82
-        : Math.max(0.5, 0.64 + batteryFactor * 0.2);
+      const rect = canvas.getBoundingClientRect();
+      const viewportWidth = Math.max(window.innerWidth, 1);
+      const viewportHeight = Math.max(window.innerHeight, 1);
+      const screenX = rect.left + (playerCenter.x / state.room.bounds.width) * rect.width;
+      const screenY = rect.top + (playerCenter.y / state.room.bounds.height) * rect.height;
+      const xRatio = Math.max(0, Math.min(1, screenX / viewportWidth));
+      const yRatio = Math.max(0, Math.min(1, screenY / viewportHeight));
 
       bodyStyle.setProperty("--light-x", `${(xRatio * 100).toFixed(2)}%`);
       bodyStyle.setProperty("--light-y", `${(yRatio * 100).toFixed(2)}%`);
-      bodyStyle.setProperty("--light-size", `${(size * 100).toFixed(2)}%`);
-      bodyStyle.setProperty("--light-opacity", `${glowOpacity.toFixed(2)}`);
+      bodyStyle.setProperty("--light-size", "20%");
+      bodyStyle.setProperty("--light-opacity", "0.82");
     }
 
     function formatTime(totalSeconds) {
@@ -594,12 +634,16 @@
     function openDialogue(config) {
       state.ui.currentDialogue = {
         ...config,
-        choices: config.choices.map((choice) => ({ ...choice })),
+        choices: (config.choices || []).map((choice) => ({ ...choice })),
       };
       state.ui.selectedChoiceIndex = 0;
       startTimer(
         config.timerSeconds || 0,
-        () => resolveDialogueChoice(config.choices[config.choices.length - 1].id),
+        () => {
+          if (config.choices && config.choices.length) {
+            resolveDialogueChoice(config.choices[config.choices.length - 1].id);
+          }
+        },
       );
       renderDialogue();
     }
@@ -661,13 +705,18 @@
       const dialogue = state.ui.currentDialogue;
       if (!dialogue) {
         ui.dialogueBox.classList.remove("is-active");
+        ui.dialogueBox.classList.remove("is-centered");
         return;
       }
 
       ui.dialogueBox.classList.add("is-active");
-      ui.dialogueKicker.textContent = state.systems.gameOver
-        ? "Run Ended"
-        : (state.timers.active ? `Decision - ${Math.ceil(state.timers.active.remaining)}s` : "Decision");
+      ui.dialogueBox.classList.toggle("is-game-over", Boolean(state.systems.gameOver));
+      ui.dialogueBox.classList.toggle("is-centered", Boolean(dialogue.centered));
+      ui.dialogueKicker.textContent = dialogue.kicker || (
+        state.systems.gameOver
+          ? "Run Ended"
+          : (state.timers.active ? `Decision - ${Math.ceil(state.timers.active.remaining)}s` : "Decision")
+      );
       ui.dialogueTitle.textContent = dialogue.title;
       ui.dialogueBody.textContent = dialogue.body;
       ui.dialogueChoices.innerHTML = "";
@@ -724,7 +773,8 @@
       setTaskQueue([]);
       setInteractionHint("Game over. Refresh the page to play again.");
       state.ui.currentDialogue = {
-        title,
+        kicker: title,
+        title: "GAME OVER",
         body,
         choices: [],
       };
@@ -734,7 +784,7 @@
     }
 
     function updateNightClock(dt) {
-      if (!state.ui.levelOverlay && !state.systems.gameOver) {
+      if (!state.ui.levelOverlay && !state.systems.gameOver && !state.systems.familySafe) {
         state.systems.night.remaining = Math.max(0, state.systems.night.remaining - dt);
       }
     }
@@ -877,6 +927,66 @@
       setInteractionHint(getHintText("returnToChildren", "Take the candle back to the children."));
     }
 
+    function triggerEvent06() {
+      state.events.activeEventId = "event06";
+      if (audio) {
+        audio.onEvent("event05");
+      }
+      triggerAlarmPulse();
+      setTaskQueue([
+        {
+          id: TASK_IDS.goToBasement,
+          label: getTaskLabel("goToBasement", "Take everyone to the basement."),
+          completed: state.room.currentRoomId === "basement",
+        },
+        {
+          id: TASK_IDS.waitForDawn,
+          label: getTaskLabel("waitForDawn", "Wait for dawn."),
+          completed: false,
+        },
+      ]);
+      setInteractionHint("Alarm: time is running out and the battery is close to dying. Get the family to the basement and stay in the safe corner.");
+    }
+
+    function returnToMainMenu() {
+      window.location.href = "index.html";
+    }
+
+    function beginMorningEnding() {
+      state.systems.familySafe = true;
+      clearTimer();
+      state.events.activeEventId = "event06-complete";
+      setTaskQueue([]);
+      setInteractionHint("The family is safe now. Wait a little until morning.");
+      openDialogue({
+        kicker: "Family Safe",
+        title: "WAIT A LITTLE LONGER",
+        body: "Stay close. Stay quiet. Morning is almost here.",
+        centered: true,
+        choices: [],
+        timerSeconds: 0,
+      });
+      updateHud();
+
+      if (state.timers.morningTimeoutId) {
+        window.clearTimeout(state.timers.morningTimeoutId);
+      }
+
+      state.timers.morningTimeoutId = window.setTimeout(() => {
+        state.timers.morningTimeoutId = 0;
+        closeDialogue();
+        showLevelOverlay(LEVEL_COPY.level6Complete, returnToMainMenu);
+        setInteractionHint("Morning came. You kept the family safe from the strangers outside.");
+        if (state.timers.menuRedirectTimeoutId) {
+          window.clearTimeout(state.timers.menuRedirectTimeoutId);
+        }
+        state.timers.menuRedirectTimeoutId = window.setTimeout(() => {
+          state.timers.menuRedirectTimeoutId = 0;
+          returnToMainMenu();
+        }, 6000);
+      }, 11000);
+    }
+
     function applyEndingState() {
       document.body.classList.remove("end-safe", "end-almost", "end-dark");
 
@@ -937,6 +1047,7 @@
       if (activeEventId === "event02") {
         state.events.completed.event02 = true;
         state.events.choiceHistory.event02 = choiceId;
+        completeTask("goToChild");
         completeTask("answerChild");
         let event02Outcome = getOutcomeText("event02", "childComforted", "The child steps closer. The counting stops.");
 
@@ -983,10 +1094,17 @@
       if (activeEventId === "event05") {
         state.events.completed.event05 = true;
         state.events.choiceHistory.event05 = choiceId;
+        completeTask(TASK_IDS.checkYoungerChildAgain);
         completeTask(TASK_IDS.stayWithFamily);
-        applyEndingState();
         showLevelOverlay(LEVEL_COPY.level5Complete, () => {
-          setInteractionHint(getOutcomeText("event05", "familyHeldTogether", "The candle burns low, but everyone is still here."));
+          showLevelOverlay(LEVEL_COPY.level6Notice, () => {
+            showLevelOverlay(LEVEL_COPY.level6Start, () => {
+              triggerEvent06();
+              setInteractionHint(
+                `${getOutcomeText("event05", "familyHeldTogether", "The candle burns low, but everyone is still here.")} Alarm: time is running out and the battery is close to dying. Get the family to the basement and wait in the safe corner.`,
+              );
+            });
+          });
         });
       }
     }
@@ -1017,6 +1135,17 @@
         if (!state.events.completed.event05 && !state.ui.currentDialogue) {
           setInteractionHint(getHintText("stayCloseToChild", "Stay close to the younger child and press SPACE."));
         }
+      }
+
+      if (state.events.activeEventId === "event06" && state.room.currentRoomId === "basement") {
+        completeTask(TASK_IDS.goToBasement);
+        if (!state.ui.currentDialogue && !isTaskComplete(TASK_IDS.waitForDawn)) {
+          setInteractionHint("Stay in the safe corner and wait for dawn.");
+        }
+      }
+
+      if (state.events.activeEventId === "event04" && !state.ui.currentDialogue && isEvent04DecisionReady()) {
+        setInteractionHint("Decision ready. Press SPACE on the front door or the older child to choose what to do.");
       }
     }
 
@@ -1088,13 +1217,40 @@
         case "frontDoor":
           if (state.events.activeEventId === "event04") {
             completeTask("goToDoor");
-            openDialogue(COPY.event04);
+            if (isEvent04DecisionReady()) {
+              openDialogue(COPY.event04);
+            } else {
+              setInteractionHint("Check on the older child before deciding what to do at the door.");
+            }
           }
           break;
         case "olderChild":
           if (state.events.activeEventId === "event04") {
             completeTask("checkChild");
-            setInteractionHint(getHintText("frontDoorChild", getText(["dialogue", "olderChild", "duringKnock"], "The older child hesitates near the front of the room.")));
+            if (isEvent04DecisionReady()) {
+              openDialogue(COPY.event04);
+            } else if (isTaskComplete("goToDoor")) {
+              setInteractionHint("Decision ready. Press SPACE again here or at the front door to choose what to do.");
+            } else {
+              setInteractionHint(getHintText("frontDoorChild", getText(["dialogue", "olderChild", "duringKnock"], "The older child hesitates near the front of the room.")));
+            }
+          }
+          break;
+        case "safeCorner":
+          if (state.events.activeEventId === "event06" && !state.events.completed.event06 && isTaskComplete(TASK_IDS.goToBasement)) {
+            state.events.completed.event06 = true;
+            completeTask(TASK_IDS.waitForDawn);
+            applyEndingState();
+            beginMorningEnding();
+          } else if (state.events.activeEventId === "event06") {
+            setInteractionHint("Get to the basement first, then wait in the safe corner.");
+          } else {
+            setInteractionHint("It feels safer here.");
+          }
+          break;
+        case "basementDoor":
+          if (state.events.activeEventId === "event06") {
+            setInteractionHint("Too dangerous. Stay away from the outside door and move deeper into the basement.");
           }
           break;
         case "toyRobot":
@@ -1138,13 +1294,13 @@
     }
 
     function updateBattery(dt) {
-      if (!state.systems.gameOver && state.systems.blackout && !state.systems.candleLit) {
-        setBattery(state.systems.battery - dt * 0.8);
+      if (!state.systems.gameOver && !state.systems.familySafe && state.systems.blackout && !state.systems.candleLit) {
+        setBattery(state.systems.battery - dt * BATTERY_DRAIN_PER_SECOND);
       }
     }
 
     function maybeTriggerGameOver() {
-      if (state.systems.gameOver) {
+      if (state.systems.gameOver || state.systems.familySafe) {
         return;
       }
       if (state.systems.night.remaining <= 0) {
@@ -1449,6 +1605,12 @@
     return {
       init,
       destroy() {
+        if (state.timers.morningTimeoutId) {
+          window.clearTimeout(state.timers.morningTimeoutId);
+        }
+        if (state.timers.menuRedirectTimeoutId) {
+          window.clearTimeout(state.timers.menuRedirectTimeoutId);
+        }
         cancelAnimationFrame(state.animation.frameRequestId);
         window.removeEventListener("resize", resizeCanvas);
         input.dispose();

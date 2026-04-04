@@ -25,14 +25,15 @@
       },
       systems: {
         threat: 1,
-        battery: 18,
+        battery: 40,
         candleLit: false,
         blackout: false,
         gameOver: false,
+        familySafe: false,
         gameOverReason: "",
         night: {
-          duration: 5 * 60,
-          remaining: 5 * 60,
+          duration: 3 * 60,
+          remaining: 3 * 60,
         },
       },
       inventory: {
@@ -63,6 +64,8 @@
       },
       timers: {
         active: null,
+        morningTimeoutId: 0,
+        menuRedirectTimeoutId: 0,
       },
     };
   }

@@ -307,6 +307,7 @@ body::after {
   background: rgba(8, 8, 18, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease, background 0.35s ease;
 }
 
 .story-screen {
@@ -526,6 +527,46 @@ body::after {
   opacity: 1;
 }
 
+.dialogue-box.is-game-over {
+  top: 50%;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+  width: min(84%, 640px);
+  padding: 22px 24px;
+  z-index: 28;
+}
+
+.dialogue-box.is-game-over .dialogue-title {
+  font-size: clamp(34px, 6vw, 56px);
+  line-height: 0.95;
+  letter-spacing: 0.08em;
+}
+
+.dialogue-box.is-game-over .dialogue-body {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.dialogue-box.is-centered {
+  top: 50%;
+  bottom: auto;
+  transform: translate(-50%, -50%);
+  width: min(84%, 640px);
+  padding: 22px 24px;
+  z-index: 27;
+}
+
+.dialogue-box.is-centered .dialogue-title {
+  font-size: clamp(30px, 5.5vw, 48px);
+  line-height: 0.95;
+  letter-spacing: 0.08em;
+}
+
+.dialogue-box.is-centered .dialogue-body {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
 .dialogue-title {
   font-family: "Bebas Neue", sans-serif;
   font-size: 24px;
@@ -643,6 +684,31 @@ body.end-safe {
 
 body.end-safe::before {
   background: radial-gradient(circle at center, rgba(255, 218, 155, 0.08) 0%, rgba(255, 218, 155, 0.02) 38%, transparent 70%);
+}
+
+body.end-safe .level-card {
+  background:
+    linear-gradient(180deg, rgba(30, 20, 12, 0.94), rgba(10, 10, 18, 0.96)),
+    rgba(8, 8, 18, 0.94);
+  border-color: rgba(245, 196, 115, 0.45);
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(255, 222, 168, 0.08),
+    0 0 40px rgba(245, 196, 115, 0.12);
+  transform: translateY(-4px);
+}
+
+body.end-safe .level-kicker {
+  color: rgba(255, 221, 172, 0.82);
+}
+
+body.end-safe .level-title {
+  color: #fff4dc;
+  text-shadow: 0 0 18px rgba(245, 196, 115, 0.22);
+}
+
+body.end-safe .level-body {
+  color: rgba(255, 240, 218, 0.92);
 }
 
 body.end-almost {
