@@ -66,11 +66,74 @@
     };
   }
 
+  function isValueInRange(value, range) {
+    return value >= range.start && value <= range.end;
+  }
+
+  function getFootProbe(position, spriteSize, bounds) {
+    return {
+      x: (position.x + spriteSize.width * 0.5) / bounds.width,
+      y: (position.y + spriteSize.height * 0.88) / bounds.height,
+    };
+  }
+
+  function isInsideZone(point, zone) {
+    return isValueInRange(point.x, zone.x) && isValueInRange(point.y, zone.y);
+  }
+
+  function isWalkablePosition(position, bounds, spriteSize, room) {
+    const walkableZones = room?.walkableZones;
+    const blockedZones = room?.blockedZones || [];
+
+    if (!Array.isArray(walkableZones) || walkableZones.length === 0) {
+      return true;
+    }
+
+    const footProbe = getFootProbe(position, spriteSize, bounds);
+    const insideWalkableZone = walkableZones.some((zone) => isInsideZone(footProbe, zone));
+    const insideBlockedZone = blockedZones.some((zone) => isInsideZone(footProbe, zone));
+
+    return insideWalkableZone && !insideBlockedZone;
+  }
+
+  function resolveRoomCollision(currentPosition, candidatePosition, bounds, spriteSize, room) {
+    const clampedCandidate = clampPosition(candidatePosition, bounds, spriteSize);
+
+    if (isWalkablePosition(clampedCandidate, bounds, spriteSize, room)) {
+      return clampedCandidate;
+    }
+
+    const xOnly = clampPosition(
+      { x: clampedCandidate.x, y: currentPosition.y },
+      bounds,
+      spriteSize,
+    );
+
+    if (isWalkablePosition(xOnly, bounds, spriteSize, room)) {
+      return xOnly;
+    }
+
+    const yOnly = clampPosition(
+      { x: currentPosition.x, y: clampedCandidate.y },
+      bounds,
+      spriteSize,
+    );
+
+    if (isWalkablePosition(yOnly, bounds, spriteSize, room)) {
+      return yOnly;
+    }
+
+    return clampPosition(currentPosition, bounds, spriteSize);
+  }
+
   window.MovementController = {
     clampPosition,
     getAnimationFps,
     getDirection,
+    getFootProbe,
     getMovementVector,
     getMoveSpeed,
+    isWalkablePosition,
+    resolveRoomCollision,
   };
 })();

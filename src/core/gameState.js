@@ -28,6 +28,10 @@
         battery: 18,
         candleLit: false,
         blackout: false,
+        night: {
+          duration: 15 * 60,
+          remaining: 15 * 60,
+        },
       },
       inventory: {
         candle: false,
