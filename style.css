@@ -32,17 +32,18 @@
 
 html,
 body {
-  height: 100%;
+  min-height: 100%;
 }
 
 body {
   background: radial-gradient(1200px 800px at 20% 10%, #1a1b32 0%, #0b0b18 40%, var(--void) 100%);
   color: var(--text);
   font-family: "JetBrains Mono", monospace;
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.6;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body::before,
@@ -79,21 +80,24 @@ body::after {
 .home,
 .game {
   min-height: 100vh;
+  min-height: 100dvh;
   display: grid;
   place-items: center;
   gap: 16px;
-  padding: 12px;
+  padding: clamp(12px, 2vw, 24px);
 }
 
 .game-screen {
   min-height: calc(100vh - 24px);
-  width: min(98vw, 1480px);
+  min-height: calc(100dvh - clamp(24px, 4vw, 48px));
+  width: min(100%, 1480px);
   margin: 0 auto;
-  grid-template-columns: 600px minmax(0, 1fr);
+  display: grid;
+  grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
   grid-template-areas: "hud stage";
   align-items: start;
   justify-content: center;
-  gap: 18px;
+  gap: clamp(14px, 2vw, 24px);
 }
 
 .home-panel,
@@ -202,7 +206,7 @@ body::after {
 .hud-panel {
   grid-area: hud;
   width: 100%;
-  padding: 16px;
+  padding: 20px;
   align-self: stretch;
 }
 
@@ -223,32 +227,32 @@ body::after {
   width: 100%;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 
 .meter-card {
   min-width: 88px;
-  padding: 8px 10px;
+  padding: 10px 12px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .meter-label {
   display: block;
-  font-size: 13px;
+  font-size: 16px;
 }
 
 .meter-value {
   display: block;
   color: var(--gold);
-  font-size: 18px;
-  margin-top: 2px;
+  font-size: 21px;
+  margin-top: 4px;
 }
 
 .task-panel,
 .system-panel {
   min-height: 120px;
-  padding: 12px 14px;
+  padding: 16px 18px;
   background: rgba(255, 255, 255, 0.03);
   border: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -266,6 +270,8 @@ body::after {
 
 .task-item {
   color: var(--text);
+  font-size: 16px;
+  line-height: 1.7;
 }
 
 .task-item.is-complete {
@@ -277,14 +283,26 @@ body::after {
   margin-top: 8px;
 }
 
+.hud-sub,
+.task-panel-head {
+  font-size: 18px;
+}
+
+.system-line {
+  font-size: 16px;
+  line-height: 1.7;
+}
+
 .canvas-shell {
   grid-area: stage;
   position: relative;
   width: 100%;
-  height: calc(100vh - 24px);
+  min-width: 0;
+  min-height: 0;
+  height: auto;
   display: grid;
   justify-items: center;
-  align-items: start;
+  align-items: center;
 }
 
 .level-overlay {
@@ -457,9 +475,12 @@ body::after {
 }
 
 .room {
-  width: auto;
+  display: block;
+  width: min(100%, calc((100dvh - clamp(32px, 6vw, 72px)) * 650 / 728));
   max-width: 100%;
-  height: min(calc(100vh - 24px), 92vw);
+  max-height: calc(100vh - clamp(32px, 6vw, 72px));
+  max-height: calc(100dvh - clamp(32px, 6vw, 72px));
+  height: auto;
   aspect-ratio: 650 / 728;
   background-image: url("assets/images/backgrounds/middlefloor.png");
   background-size: contain;
@@ -758,23 +779,22 @@ body.end-dark {
 }
 
 @media (max-width: 760px) {
-  body {
-    overflow-y: auto;
-    overflow-x: hidden;
+  .home,
+  .game {
+    padding: 12px;
   }
 
   .game-screen {
-    width: auto;
     margin: 0;
     min-height: auto;
     grid-template-columns: 1fr;
     grid-template-areas:
-      "hud"
-      "stage";
+      "stage"
+      "hud";
   }
 
-  .hud-row {
-    flex-direction: column;
+  .hud-panel {
+    padding: 16px;
   }
 
   .hud-meters {
@@ -787,12 +807,14 @@ body.end-dark {
   }
 
   .room {
-    width: min(92vw, 720px);
-    height: auto;
+    width: min(100%, 720px);
+    max-height: calc(100dvh - 24px);
   }
 
   .dialogue-box {
+    width: min(94%, 640px);
     bottom: 10px;
+    padding: 12px 14px;
   }
 
   .story-screen {
@@ -816,5 +838,56 @@ body.end-dark {
 
   .story-actions {
     flex-direction: column;
+  }
+}
+
+@media (max-width: 1100px) {
+  .game-screen {
+    grid-template-columns: minmax(260px, 340px) minmax(0, 1fr);
+  }
+
+  .hud-meters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .hud-meters {
+    grid-template-columns: 1fr;
+  }
+
+  .meter-card,
+  .task-panel,
+  .system-panel {
+    padding: 10px 12px;
+  }
+
+  .meter-label {
+    font-size: 15px;
+  }
+
+  .meter-value {
+    font-size: 19px;
+  }
+
+  .task-item,
+  .system-line {
+    font-size: 15px;
+  }
+
+  .dialogue-box.is-game-over,
+  .dialogue-box.is-centered {
+    width: min(92%, 640px);
+    padding: 18px 18px;
+  }
+
+  .dialogue-title {
+    font-size: 21px;
+  }
+
+  .dialogue-body,
+  .dialogue-box.is-centered .dialogue-body,
+  .dialogue-box.is-game-over .dialogue-body {
+    font-size: 13px;
   }
 }

@@ -224,15 +224,31 @@
       return Boolean(window.SheshProhorDebug && window.SheshProhorDebug.showCollisionOverlay);
     }
 
-    function updateRoomBounds() {
+    function getPositionFromFootProbe(footProbe, bounds, spriteSize) {
+      return {
+        x: footProbe.x * bounds.width - spriteSize.width * 0.5,
+        y: footProbe.y * bounds.height - spriteSize.height * 0.88,
+      };
+    }
+
+    function updateRoomBounds(preservePlayerPosition = false) {
+      const previousBounds = state.room.bounds;
+      const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
+      const previousFootProbe = preservePlayerPosition && previousBounds.width > 0 && previousBounds.height > 0
+        ? window.MovementController.getFootProbe(state.player.position, spriteSize, previousBounds)
+        : null;
+
       state.room.bounds = {
         width: canvas.width,
         height: canvas.height,
       };
 
-      const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
+      const nextPosition = previousFootProbe
+        ? getPositionFromFootProbe(previousFootProbe, state.room.bounds, spriteSize)
+        : state.player.position;
+
       state.player.position = window.MovementController.clampPosition(
-        state.player.position,
+        nextPosition,
         state.room.bounds,
         spriteSize,
       );
@@ -243,9 +259,13 @@
       const nextWidth = Math.max(320, Math.round(rect.width || canvas.width));
       const nextHeight = Math.round((nextWidth * 728) / 650);
 
+      if (canvas.width === nextWidth && canvas.height === nextHeight) {
+        return;
+      }
+
       canvas.width = nextWidth;
       canvas.height = nextHeight;
-      updateRoomBounds();
+      updateRoomBounds(true);
     }
 
     function clampThreat(value) {

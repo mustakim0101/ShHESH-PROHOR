@@ -4,25 +4,25 @@
     name: "Kitchen",
     background: "assets/images/backgrounds/someroom.jpg",
     walkableZones: [
-      // Main wooden kitchen floor kept below the visible floor-edge line.
+      // Main wooden kitchen floor, trimmed off the outer black margins.
       {
-        x: { start: 0.07, end: 0.93 },
-        y: { start: 0.58, end: 0.91 },
+        x: { start: 0.11, end: 0.86 },
+        y: { start: 0.58, end: 0.88 },
       },
       // Thin front edge under the raised tile section so counters stay reachable from below.
       {
         x: { start: 0.21, end: 0.78 },
         y: { start: 0.52, end: 0.58 },
       },
-      // Slightly lower right-front edge so the right wall side matches the marked boundary better.
+      // Narrow right-side access where the phone sits, without spilling into the black edge.
       {
-        x: { start: 0.78, end: 0.86 },
-        y: { start: 0.55, end: 0.61 },
+        x: { start: 0.75, end: 0.82 },
+        y: { start: 0.55, end: 0.62 },
       },
       // Bottom doorway tiles where the player enters and exits.
       {
         x: { start: 0.42, end: 0.58 },
-        y: { start: 0.84, end: 0.99 },
+        y: { start: 0.82, end: 0.96 },
       },
     ],
     blockedZones: [
@@ -45,6 +45,20 @@
       {
         x: { start: 0.79, end: 0.94 },
         y: { start: 0.34, end: 0.61 },
+      },
+      // Right outer void beside the room art.
+      {
+        x: { start: 0.86, end: 0.98 },
+        y: { start: 0.52, end: 0.96 },
+      },
+      // Bottom corners outside the doorway stem.
+      {
+        x: { start: 0.02, end: 0.41 },
+        y: { start: 0.88, end: 0.99 },
+      },
+      {
+        x: { start: 0.59, end: 0.98 },
+        y: { start: 0.88, end: 0.99 },
       },
     ],
     interactables: [
