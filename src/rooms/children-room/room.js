@@ -16,6 +16,11 @@
       },
     ],
     blockedZones: [
+      // Front railing edge across the upper landing.
+      {
+        x: { start: 0.18, end: 0.83 },
+        y: { start: 0.47, end: 0.54 },
+      },
       {
         x: { start: 0.16, end: 0.91 },
         y: { start: 0.12, end: 0.47 },

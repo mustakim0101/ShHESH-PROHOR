@@ -6,6 +6,7 @@
   --blood2: #ff445c;
   --panel: rgba(12, 12, 22, 0.82);
   --panel-border: rgba(255, 255, 255, 0.08);
+  --panel-shadow: 0 18px 60px rgba(0, 0, 0, 0.32);
   --gold: #f5c473;
   --vignette-opacity: 0;
   --threat-tint: transparent;
@@ -36,10 +37,15 @@ body {
 }
 
 body {
-  background: radial-gradient(1200px 800px at 20% 10%, #1a1b32 0%, #0b0b18 40%, var(--void) 100%);
+  background:
+    radial-gradient(1100px 760px at 50% -12%, rgba(210, 232, 255, 0.18) 0%, rgba(210, 232, 255, 0.04) 24%, rgba(210, 232, 255, 0) 56%),
+    linear-gradient(125deg, rgba(31, 74, 92, 0.34) 0%, rgba(31, 74, 92, 0) 34%),
+    linear-gradient(235deg, rgba(121, 54, 75, 0.26) 0%, rgba(121, 54, 75, 0) 38%),
+    radial-gradient(820px 520px at 18% 82%, rgba(213, 144, 80, 0.12) 0%, rgba(213, 144, 80, 0) 52%),
+    linear-gradient(180deg, #06111a 0%, #091019 22%, #0d0d16 52%, #040508 100%);
   color: var(--text);
   font-family: "JetBrains Mono", monospace;
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1.6;
   position: relative;
   overflow-x: hidden;
@@ -57,8 +63,13 @@ body::after {
 
 body::before {
   background:
-    radial-gradient(circle at center, transparent 38%, rgba(0, 0, 0, var(--vignette-opacity)) 100%),
-    linear-gradient(0deg, transparent, transparent);
+    radial-gradient(circle at 16% 18%, rgba(255, 255, 255, 0.06) 0 1px, transparent 1px 100%),
+    radial-gradient(circle at 72% 14%, rgba(255, 255, 255, 0.05) 0 1px, transparent 1px 100%),
+    radial-gradient(circle at 86% 30%, rgba(255, 255, 255, 0.04) 0 1px, transparent 1px 100%),
+    radial-gradient(circle at 64% 22%, rgba(171, 214, 255, 0.08) 0%, rgba(171, 214, 255, 0.02) 6%, rgba(171, 214, 255, 0) 24%),
+    linear-gradient(180deg, rgba(210, 228, 255, 0.08), rgba(0, 0, 0, 0) 24%),
+    radial-gradient(circle at center, transparent 34%, rgba(0, 0, 0, var(--vignette-opacity)) 100%),
+    linear-gradient(180deg, rgba(3, 8, 15, 0.1), rgba(2, 2, 6, 0.38));
   opacity: max(var(--overlay-opacity), var(--vignette-opacity));
   transition: opacity 0.8s ease, background 0.8s ease;
 }
@@ -106,7 +117,8 @@ body::after {
   background: var(--panel);
   border: 1px solid var(--panel-border);
   backdrop-filter: blur(10px);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.32);
+  box-shadow: var(--panel-shadow);
+  border-radius: 22px;
 }
 
 .home-panel {
@@ -206,8 +218,16 @@ body::after {
 .hud-panel {
   grid-area: hud;
   width: 100%;
-  padding: 20px;
+  padding: 22px;
   align-self: stretch;
+  position: sticky;
+  top: 16px;
+  background:
+    linear-gradient(180deg, rgba(22, 24, 40, 0.96), rgba(10, 11, 20, 0.92)),
+    var(--panel);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .hud-row {
@@ -232,29 +252,38 @@ body::after {
 
 .meter-card {
   min-width: 88px;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 12px 14px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.085), rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 12px 26px rgba(0, 0, 0, 0.14);
 }
 
 .meter-label {
   display: block;
-  font-size: 16px;
+  font-size: 18px;
 }
 
 .meter-value {
   display: block;
   color: var(--gold);
-  font-size: 21px;
+  font-size: 24px;
   margin-top: 4px;
 }
 
 .task-panel,
 .system-panel {
   min-height: 120px;
-  padding: 16px 18px;
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 18px 20px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.03));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 14px 34px rgba(0, 0, 0, 0.18);
 }
 
 .hud-row-bottom {
@@ -270,7 +299,7 @@ body::after {
 
 .task-item {
   color: var(--text);
-  font-size: 16px;
+  font-size: 19px;
   line-height: 1.7;
 }
 
@@ -285,11 +314,11 @@ body::after {
 
 .hud-sub,
 .task-panel-head {
-  font-size: 18px;
+  font-size: 21px;
 }
 
 .system-line {
-  font-size: 16px;
+  font-size: 19px;
   line-height: 1.7;
 }
 
@@ -303,6 +332,37 @@ body::after {
   display: grid;
   justify-items: center;
   align-items: center;
+  isolation: isolate;
+}
+
+.canvas-shell::before,
+.canvas-shell::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.canvas-shell::before {
+  inset: 2% 7% 6%;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(188, 224, 255, 0.18) 0%, rgba(188, 224, 255, 0.08) 18%, rgba(188, 224, 255, 0) 44%),
+    radial-gradient(circle at 50% 54%, rgba(18, 61, 78, 0.34) 0%, rgba(18, 61, 78, 0.14) 36%, rgba(18, 61, 78, 0) 66%),
+    radial-gradient(circle at 50% 84%, rgba(213, 144, 80, 0.12) 0%, rgba(213, 144, 80, 0) 30%);
+  filter: blur(40px);
+  opacity: 1;
+}
+
+.canvas-shell::after {
+  inset: 8% 10% 10%;
+  border: 1px solid rgba(198, 229, 255, 0.1);
+  border-radius: 28px;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.015),
+    inset 0 1px 0 rgba(218, 236, 255, 0.08),
+    0 0 54px rgba(66, 138, 165, 0.16),
+    0 34px 90px rgba(0, 0, 0, 0.5);
+  opacity: 0.9;
 }
 
 .level-overlay {
@@ -325,6 +385,7 @@ body::after {
   background: rgba(8, 8, 18, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow: 0 24px 80px rgba(0, 0, 0, 0.5);
+  border-radius: 24px;
   transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease, background 0.35s ease;
 }
 
@@ -538,10 +599,16 @@ body::after {
   bottom: 18px;
   transform: translateX(-50%);
   width: min(92%, 720px);
-  padding: 14px 16px;
+  padding: 16px 18px;
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.2s ease;
+  background:
+    linear-gradient(180deg, rgba(20, 20, 34, 0.96), rgba(8, 8, 18, 0.94)),
+    var(--panel);
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .dialogue-box.is-active {
@@ -565,7 +632,7 @@ body::after {
 
 .dialogue-box.is-game-over .dialogue-body {
   margin-top: 10px;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 .dialogue-box.is-centered {
@@ -585,12 +652,12 @@ body::after {
 
 .dialogue-box.is-centered .dialogue-body {
   margin-top: 10px;
-  font-size: 14px;
+  font-size: 18px;
 }
 
 .dialogue-title {
   font-family: "Bebas Neue", sans-serif;
-  font-size: 24px;
+  font-size: 28px;
   letter-spacing: 0.06em;
   margin-top: 2px;
 }
@@ -598,6 +665,8 @@ body::after {
 .dialogue-body {
   margin-top: 8px;
   color: rgba(231, 231, 245, 0.95);
+  font-size: 18px;
+  line-height: 1.65;
 }
 
 .dialogue-choices {
@@ -608,10 +677,13 @@ body::after {
 }
 
 .dialogue-choice {
-  padding: 8px 10px;
+  padding: 10px 12px;
   border: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(255, 255, 255, 0.03);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.02));
   color: rgba(231, 231, 245, 0.86);
+  font-size: 18px;
+  line-height: 1.5;
+  border-radius: 14px;
 }
 
 .dialogue-choice.is-selected {
@@ -863,16 +935,16 @@ body.end-dark {
   }
 
   .meter-label {
-    font-size: 15px;
+    font-size: 17px;
   }
 
   .meter-value {
-    font-size: 19px;
+    font-size: 22px;
   }
 
   .task-item,
   .system-line {
-    font-size: 15px;
+    font-size: 17px;
   }
 
   .dialogue-box.is-game-over,
@@ -882,12 +954,12 @@ body.end-dark {
   }
 
   .dialogue-title {
-    font-size: 21px;
+    font-size: 24px;
   }
 
   .dialogue-body,
   .dialogue-box.is-centered .dialogue-body,
   .dialogue-box.is-game-over .dialogue-body {
-    font-size: 13px;
+    font-size: 16px;
   }
 }

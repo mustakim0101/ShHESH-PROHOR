@@ -26,10 +26,25 @@
       },
     ],
     blockedZones: [
+      // Upper-left black void outside the room walls.
+      {
+        x: { start: 0.0, end: 0.2 },
+        y: { start: 0.0, end: 0.31 },
+      },
+      // Upper-right black void outside the room walls.
+      {
+        x: { start: 0.7, end: 1.0 },
+        y: { start: 0.0, end: 0.31 },
+      },
       // Top wall and void above the visible room floor.
       {
         x: { start: 0.06, end: 0.94 },
         y: { start: 0.04, end: 0.33 },
+      },
+      // Front railing edge of the raised counter section.
+      {
+        x: { start: 0.18, end: 0.8 },
+        y: { start: 0.5, end: 0.56 },
       },
       // Carry the middle raised section upward so the player stays on the lower floor line.
       {
@@ -45,6 +60,16 @@
       {
         x: { start: 0.79, end: 0.94 },
         y: { start: 0.34, end: 0.61 },
+      },
+      // Left wall strip so the player cannot slide into the black cutout.
+      {
+        x: { start: 0.0, end: 0.06 },
+        y: { start: 0.31, end: 0.78 },
+      },
+      // Right wall strip so the player cannot slide into the black cutout.
+      {
+        x: { start: 0.94, end: 1.0 },
+        y: { start: 0.31, end: 0.78 },
       },
       // Right outer void beside the room art.
       {

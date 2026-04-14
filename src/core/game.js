@@ -1501,6 +1501,7 @@
 
       window.PlayerRenderer.drawRoom(context, canvas, {
         backgroundImage,
+        roomId: currentRoom ? currentRoom.id : "",
       });
       window.PlayerRenderer.drawInteractables(
         context,

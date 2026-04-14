@@ -59,12 +59,46 @@
 
     context.fillStyle = "rgba(0, 0, 0, 0.14)";
     context.fillRect(0, 0, canvas.width, canvas.height);
+
+    if (roomState.roomId === "basement") {
+      drawBasementTouchup(context, canvas);
+    }
+  }
+
+  function drawBasementTouchup(context, canvas) {
+    context.save();
+
+    // Soften the harsh dark patches in the basement art while keeping the room moody.
+    context.fillStyle = "rgba(74, 54, 64, 0.08)";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    const topGlow = context.createLinearGradient(0, 0, 0, canvas.height * 0.36);
+    topGlow.addColorStop(0, "rgba(138, 112, 124, 0.14)");
+    topGlow.addColorStop(1, "rgba(138, 112, 124, 0)");
+    context.fillStyle = topGlow;
+    context.fillRect(0, 0, canvas.width, canvas.height * 0.36);
+
+    const rightSide = context.createLinearGradient(canvas.width * 0.78, 0, canvas.width, 0);
+    rightSide.addColorStop(0, "rgba(96, 78, 88, 0)");
+    rightSide.addColorStop(1, "rgba(96, 78, 88, 0.18)");
+    context.fillStyle = rightSide;
+    context.fillRect(canvas.width * 0.78, 0, canvas.width * 0.22, canvas.height * 0.78);
+
+    const lowerCorner = context.createLinearGradient(canvas.width * 0.8, canvas.height * 0.66, canvas.width, canvas.height);
+    lowerCorner.addColorStop(0, "rgba(0, 0, 0, 0)");
+    lowerCorner.addColorStop(1, "rgba(84, 72, 104, 0.18)");
+    context.fillStyle = lowerCorner;
+    context.fillRect(canvas.width * 0.8, canvas.height * 0.66, canvas.width * 0.2, canvas.height * 0.34);
+
+    context.restore();
   }
 
   function drawInteractables(context, canvas, interactables, activeItem) {
     if (!Array.isArray(interactables)) {
       return;
     }
+
+    const pulse = (Math.sin(performance.now() * 0.008) + 1) * 0.5;
 
     interactables.forEach((item) => {
       const x = canvas.width * item.x;
@@ -76,9 +110,18 @@
       context.save();
       if (image && image.complete) {
         const scale = OBJECT_IMAGE_CONFIG[item.id].scale || 1.6;
-        const drawWidth = radius * scale;
+        const activeBoost = isActive ? 1 + pulse * 0.08 : 1;
+        const drawWidth = radius * scale * activeBoost;
         const aspectRatio = image.height > 0 ? image.width / image.height : 1;
         const drawHeight = drawWidth / Math.max(0.6, aspectRatio);
+        const brightness = isActive ? 1.38 + pulse * 0.18 : 1;
+
+        context.filter = `brightness(${brightness}) saturate(${isActive ? 1.12 : 1})`;
+
+        if (isActive) {
+          context.shadowColor = "rgba(255, 211, 125, 0.72)";
+          context.shadowBlur = 18 + pulse * 10;
+        }
 
         context.drawImage(
           image,
@@ -87,15 +130,18 @@
           drawWidth,
           drawHeight,
         );
+      } else if (isActive) {
+        const beamHeight = radius * 2.1;
+        const beamWidth = radius * 1.1;
+        const glow = context.createLinearGradient(x, y - beamHeight, x, y + beamHeight);
+        glow.addColorStop(0, "rgba(255, 211, 125, 0)");
+        glow.addColorStop(0.35, "rgba(255, 211, 125, 0.08)");
+        glow.addColorStop(0.5, "rgba(255, 244, 214, 0.22)");
+        glow.addColorStop(0.65, "rgba(255, 211, 125, 0.08)");
+        glow.addColorStop(1, "rgba(255, 211, 125, 0)");
+        context.fillStyle = glow;
+        context.fillRect(x - beamWidth * 0.5, y - beamHeight, beamWidth, beamHeight * 2);
       }
-
-      context.strokeStyle = isActive ? "rgba(255, 196, 115, 0.95)" : "rgba(231, 231, 245, 0.45)";
-      context.fillStyle = isActive ? "rgba(255, 196, 115, 0.12)" : "rgba(14, 14, 28, 0.06)";
-      context.lineWidth = isActive ? 3 : 2;
-      context.beginPath();
-      context.arc(x, y, radius, 0, Math.PI * 2);
-      context.fill();
-      context.stroke();
       context.restore();
     });
 
@@ -106,13 +152,13 @@
 
   function drawLabel(context, canvas, label) {
     context.save();
-    context.font = '13px "JetBrains Mono", monospace';
+    context.font = '16px "JetBrains Mono", monospace';
     context.textAlign = "center";
     context.textBaseline = "middle";
 
     const textWidth = context.measureText(label).width;
-    const boxWidth = textWidth + 28;
-    const boxHeight = 30;
+    const boxWidth = textWidth + 34;
+    const boxHeight = 36;
     const x = canvas.width * 0.5 - boxWidth * 0.5;
     const y = 18;
 
