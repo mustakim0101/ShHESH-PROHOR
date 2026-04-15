@@ -1267,7 +1267,7 @@
       }
 
       if (state.events.activeEventId === "event04" && !state.ui.currentDialogue && isEvent04DecisionReady()) {
-        setInteractionHint("Decision ready. Press SPACE on the front door or the older child to choose what to do.");
+        setInteractionHint("Decision ready. Press E or SPACE on the front door or the older child to choose what to do.");
       }
     }
 
@@ -1320,7 +1320,7 @@
               completeTask("openDrawer");
               state.inventory.candle = true;
               completeTask("findCandle");
-              setInteractionHint(getHintText("relightCandle", "Press SPACE again on the drawer to light the candle."));
+              setInteractionHint(getHintText("relightCandle", "Press E or SPACE again on the drawer to light the candle."));
             } else if (!state.systems.candleLit) {
               state.systems.candleLit = true;
               completeTask("lightCandle");
@@ -1353,7 +1353,7 @@
             if (isEvent04DecisionReady()) {
               openDialogue(COPY.event04);
             } else if (isTaskComplete("goToDoor")) {
-              setInteractionHint("Decision ready. Press SPACE again here or at the front door to choose what to do.");
+              setInteractionHint("Decision ready. Press E or SPACE again here or at the front door to choose what to do.");
             } else {
               setInteractionHint(getHintText("frontDoorChild", getText(["dialogue", "olderChild", "duringKnock"], "The older child hesitates near the front of the room.")));
             }
@@ -1626,16 +1626,20 @@
       const interactable = getNearbyInteractable();
       const gateHint = currentGate ? getGateHint(currentGate) : "";
 
-      // E is reserved for gate travel, while SPACE keeps object interactions.
+      const interactKeyHint = getPromptText("interact", "Press E or SPACE to interact.");
+
       if (interactable && gateHint) {
-        setInteractionHint(`${gateHint}. Press SPACE: ${interactable.label}`);
+        setInteractionHint(`${gateHint}. ${interactKeyHint.replace(" to interact.", "")}: ${interactable.label}`);
       } else if (interactable) {
-        setInteractionHint(`Press SPACE: ${interactable.label}`);
+        setInteractionHint(`${interactKeyHint.replace(" to interact.", "")}: ${interactable.label}`);
       } else if (gateHint) {
         setInteractionHint(gateHint);
       }
 
-      if (input.consumePressed("Space") && interactable) {
+      const pressedInteract = input.consumePressed("Space")
+        || (!currentGate && input.consumePressed("KeyE"));
+
+      if (pressedInteract && interactable) {
         handleInteractable(interactable);
       }
     }
