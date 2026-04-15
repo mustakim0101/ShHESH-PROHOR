@@ -63,11 +63,13 @@
         activeEventId: "event01",
         completed: {},
         choiceHistory: {},
+        interactionCounts: {},
         interacted: {
           tv: false,
           radio: false,
           phone: false,
         },
+        carryingChildren: false,
         questionUnlocked: false,
         blackoutStarted: false,
       },

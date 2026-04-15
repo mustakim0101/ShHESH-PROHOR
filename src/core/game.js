@@ -409,6 +409,24 @@
       }
     }
 
+    function getInteractionCount(interactableId) {
+      return state.events.interactionCounts[interactableId] || 0;
+    }
+
+    function markInteraction(interactableId) {
+      const nextCount = getInteractionCount(interactableId) + 1;
+      state.events.interactionCounts[interactableId] = nextCount;
+      return nextCount;
+    }
+
+    function getRepeatedLine(interactableId, lines, fallback) {
+      const count = Math.max(0, getInteractionCount(interactableId) - 1);
+      if (Array.isArray(lines) && lines.length > 0) {
+        return lines[Math.min(count, lines.length - 1)];
+      }
+      return fallback;
+    }
+
     function triggerAlarmPulse() {
       document.body.classList.remove("impact-pulse");
       void document.body.offsetWidth;
@@ -1275,6 +1293,8 @@
         audio.onInteractable(interactable.id);
       }
 
+      markInteraction(interactable.id);
+
       switch (interactable.id) {
         case "tv":
           if (state.events.activeEventId === "event01") {
@@ -1282,7 +1302,17 @@
             completeTask("checkTv");
             maybeOpenEvent01Dialogue();
           }
-          setInteractionHint(getText(["dialogue", "tv", "intro"], "The TV keeps flickering through the signal."));
+          setInteractionHint(
+            getRepeatedLine(
+              "tv",
+              [
+                getText(["dialogue", "tv", "intro"], "The TV keeps flickering through the signal."),
+                getText(["dialogue", "tv", "warning"], "Stay indoors until further notice. Do not gather near windows."),
+                getText(["dialogue", "tv", "staticBreak"], "The screen crackles. Half a sentence disappears into static."),
+              ],
+              "The TV keeps flickering through the signal.",
+            ),
+          );
           break;
         case "radio":
           if (state.events.activeEventId === "event01") {
@@ -1290,7 +1320,23 @@
             completeTask("checkRadio");
             maybeOpenEvent01Dialogue();
           }
-          setInteractionHint(getText(["dialogue", "radio", "static"], "The radio sounds clearer than the TV, but not safer."));
+          if (!state.inventory.charger) {
+            state.inventory.charger = true;
+            addBatteryDelta(12);
+            setInteractionHint("You feel around behind the radio and find the phone charger. Battery +12%.");
+            break;
+          }
+          setInteractionHint(
+            getRepeatedLine(
+              "radio",
+              [
+                getText(["dialogue", "radio", "static"], "The radio sounds clearer than the TV, but not safer."),
+                getText(["dialogue", "radio", "news"], "A voice on the radio says the roads are still open, but only for a little while."),
+                getText(["dialogue", "radio", "dawnWord"], "The radio crackles once, then goes thin and quiet again."),
+              ],
+              "The radio sounds clearer than the TV, but not safer.",
+            ),
+          );
           break;
         case "phone":
           if (state.events.activeEventId === "event01") {
@@ -1298,16 +1344,61 @@
             completeTask("checkPhone");
             maybeOpenEvent01Dialogue();
           }
-          setInteractionHint(getText(["dialogue", "phone", "lowBatteryWarning"], "The phone is still working, but the battery is low."));
+          if (state.systems.battery <= 0) {
+            setInteractionHint(getText(["dialogue", "phone", "deadScreen"], "The screen goes black."));
+          } else if (state.systems.blackout && !state.systems.candleLit) {
+            setInteractionHint(getText(["dialogue", "phone", "neighborMessage"], "Are you awake? I heard something outside."));
+          } else if (state.systems.battery <= 10) {
+            setInteractionHint(getText(["dialogue", "phone", "lowBatteryWarning"], "Battery low."));
+          } else {
+            setInteractionHint(
+              getRepeatedLine(
+                "phone",
+                [
+                  getText(["dialogue", "phone", "familyMessage"], "Keep the lights low. Message me if it gets worse."),
+                  getText(["dialogue", "phone", "neighborMessage"], "Are you awake? I heard something outside."),
+                  getText(["dialogue", "phone", "autocorrectDraft"], "stay safe"),
+                ],
+                "The phone is still working, but the battery is low.",
+              ),
+            );
+          }
           break;
         case "youngerChild":
           if (state.events.activeEventId === "event02") {
             completeTask("goToChild");
             openDialogue(COPY.event02);
           } else if (state.events.activeEventId === "event05" && !state.events.completed.event05) {
+            state.events.carryingChildren = true;
             completeTask(TASK_IDS.checkYoungerChildAgain);
             openDialogue(COPY.event05);
+          } else {
+            setInteractionHint(
+              getRepeatedLine(
+                "youngerChild",
+                [
+                  getText(["dialogue", "youngerChild", "comforted"], "Okay. Can I stay here for a little while?"),
+                  getText(["dialogue", "youngerChild", "counting", 0], "One..."),
+                  getText(["dialogue", "youngerChild", "dawnLine"], "Is it morning now?"),
+                ],
+                "The younger child stays close.",
+              ),
+            );
           }
+          break;
+        case "familyDrawing":
+          addThreatDelta(-0.25);
+          setInteractionHint(
+            getRepeatedLine(
+              "familyDrawing",
+              [
+                "A family drawing is taped to the wall. All four of you are standing in sunlight.",
+                "The crayon lines shake a little at the edges. The child who drew it made everyone hold hands.",
+                "You look at it too long. It helps anyway.",
+              ],
+              "The family drawing steadies you for a second.",
+            ),
+          );
           break;
         case "kitchenDrawer3":
           if (state.events.activeEventId === "event03") {
@@ -1330,6 +1421,27 @@
                 });
               });
             }
+          } else if (state.inventory.candle) {
+            setInteractionHint("The third drawer is still open. The candle used to be here.");
+          } else {
+            setInteractionHint("The third drawer sticks a little before it gives.");
+          }
+          break;
+        case "kitchenDrawer2":
+          if (!state.inventory.basementKey) {
+            state.inventory.basementKey = true;
+            setInteractionHint("Inside the second drawer, you find a small basement key and keep it with you.");
+          } else {
+            setInteractionHint(
+              getRepeatedLine(
+                "kitchenDrawer2",
+                [
+                  "The second drawer holds dishcloths, old batteries, and the empty space where the key was.",
+                  "Nothing else here will help tonight.",
+                ],
+                "Nothing else here will help tonight.",
+              ),
+            );
           }
           break;
         case "frontDoor":
@@ -1340,6 +1452,17 @@
             } else {
               setInteractionHint("Check on the older child before deciding what to do at the door.");
             }
+          } else {
+            setInteractionHint(
+              getRepeatedLine(
+                "frontDoor",
+                [
+                  "You rest your hand on the front door and feel how thin it is.",
+                  "Nothing comes through the wood now, but that does not make it feel safe.",
+                ],
+                "The front door stays shut.",
+              ),
+            );
           }
           break;
         case "olderChild":
@@ -1352,6 +1475,18 @@
             } else {
               setInteractionHint(getHintText("frontDoorChild", getText(["dialogue", "olderChild", "duringKnock"], "The older child hesitates near the front of the room.")));
             }
+          } else {
+            setInteractionHint(
+              getRepeatedLine(
+                "olderChild",
+                [
+                  getText(["dialogue", "olderChild", "restless"], "I heard something near the door."),
+                  getText(["dialogue", "olderChild", "sentBack"], "Okay. I'll stay here."),
+                  "The older child watches you instead of the hallway this time.",
+                ],
+                "The older child stays close, but alert.",
+              ),
+            );
           }
           break;
         case "safeCorner":
@@ -1369,11 +1504,68 @@
         case "basementDoor":
           if (state.events.activeEventId === "event06") {
             setInteractionHint("Too dangerous. Stay away from the outside door and move deeper into the basement.");
+          } else if (!state.inventory.basementKey) {
+            setInteractionHint("The basement drawer is locked. There should be a key for it somewhere upstairs.");
+          } else {
+            setInteractionHint(
+              getRepeatedLine(
+                "basementDoor",
+                [
+                  "You unlock the drawer, but inside there is only old paper, a broken torch, and dust.",
+                  "At least it is one less closed thing in the house.",
+                ],
+                "The basement drawer hangs open now.",
+              ),
+            );
           }
           break;
         case "toyRobot":
-          state.inventory.robotOff = true;
-          setInteractionHint(getHintText("toyRobotOff", "The toy robot is silent now."));
+          if (!state.inventory.robotOff) {
+            state.inventory.robotOff = true;
+            addThreatDelta(-0.5);
+            setInteractionHint(getHintText("toyRobotOff", "The toy robot is silent now."));
+          } else {
+            setInteractionHint("The toy robot stays quiet in your hand.");
+          }
+          break;
+        case "wallClock":
+          setInteractionHint(
+            getRepeatedLine(
+              "wallClock",
+              [
+                "The wall clock sounds louder than it should. Every second feels like it belongs to the whole apartment.",
+                "You count three ticks before you realize you are holding your breath.",
+                "The clock keeps moving whether anyone is ready or not.",
+              ],
+              "The wall clock keeps time without mercy.",
+            ),
+          );
+          break;
+        case "cat":
+          setInteractionHint(
+            getRepeatedLine(
+              "cat",
+              [
+                "The cat stares at you from the kitchen corner, tail curled tight.",
+                "It slips away from your hand, then settles where it can still see the doorway.",
+                "The cat is still here. Somehow that helps.",
+              ],
+              "The cat watches the room in silence.",
+            ),
+          );
+          break;
+        case "basementStairs":
+          setInteractionHint(
+            getRepeatedLine(
+              "basementStairs",
+              [
+                "The basement stairs creak under even the smallest shift of weight.",
+                "Looking up the stairs makes the house feel longer than it is.",
+                "The stairs are still your fastest way back up.",
+              ],
+              "The basement stairs wait in the dark.",
+            ),
+          );
           break;
         default:
           setInteractionHint(`${interactable.label}.`);
@@ -1606,7 +1798,7 @@
         state.player.frame,
         state.player.position,
         {
-          carryChildren: state.events.activeEventId === "event06" && state.room.currentRoomId === "basement",
+          carryChildren: state.events.carryingChildren && !state.systems.familySafe,
           showCandle: state.systems.candleLit,
         },
       );
