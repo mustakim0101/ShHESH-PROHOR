@@ -4,32 +4,57 @@
     name: "Basement",
     background: "assets/images/backgrounds/basement.jpg",
     walkableZones: [
-      // Main basement floor.
+      // Main visible basement floor.
       {
-        x: { start: 0.05, end: 0.87 },
-        y: { start: 0.48, end: 0.96 },
+        x: { start: 0.03, end: 0.82 },
+        y: { start: 0.29, end: 0.98 },
       },
-      // Lower stair landing where the player steps off onto the floor.
+      // Right-side stair approach and landing.
       {
-        x: { start: 0.82, end: 0.99 },
-        y: { start: 0.44, end: 0.66 },
+        x: { start: 0.79, end: 0.98 },
+        y: { start: 0.44, end: 0.71 },
       },
-      // Narrow upper stair lane running down from the staircase.
+      // Narrow upper stair lane for changing floors.
       {
-        x: { start: 0.89, end: 0.99 },
-        y: { start: 0.12, end: 0.46 },
+        x: { start: 0.88, end: 0.99 },
+        y: { start: 0.11, end: 0.4 },
       },
     ],
     blockedZones: [
-      // Upper wall band under the windows.
+      // Upper wall band below the windows and railing.
       {
-        x: { start: 0.04, end: 0.86 },
-        y: { start: 0.04, end: 0.44 },
+        x: { start: 0.03, end: 0.8 },
+        y: { start: 0.03, end: 0.29 },
       },
-      // Solid stair-side wall left of the upper stair lane.
+      // Left hanging machine.
       {
-        x: { start: 0.83, end: 0.89 },
-        y: { start: 0.12, end: 0.35 },
+        x: { start: 0.08, end: 0.17 },
+        y: { start: 0.31, end: 0.58 },
+      },
+      // Middle hanging machine.
+      {
+        x: { start: 0.21, end: 0.29 },
+        y: { start: 0.31, end: 0.58 },
+      },
+      // Upper-right shelves and drawer stack.
+      {
+        x: { start: 0.62, end: 0.8 },
+        y: { start: 0.3, end: 0.45 },
+      },
+      // Center-right crate stack.
+      {
+        x: { start: 0.61, end: 0.82 },
+        y: { start: 0.58, end: 0.74 },
+      },
+      // Dark stair-side wall left of the climbable lane.
+      {
+        x: { start: 0.8, end: 0.88 },
+        y: { start: 0.1, end: 0.43 },
+      },
+      // Bottom-right tiled corner outside the wood floor.
+      {
+        x: { start: 0.82, end: 0.99 },
+        y: { start: 0.68, end: 0.99 },
       },
     ],
     interactables: [

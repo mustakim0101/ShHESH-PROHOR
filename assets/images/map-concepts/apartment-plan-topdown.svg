@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900">
+  <defs>
+    <style>
+      .wall { fill: #f3efe7; }
+      .void { fill: #6a4a2d; }
+      .wood { fill: #d9c2a0; }
+      .wood2 { fill: #d1b58f; }
+      .tile { fill: #d4d5cf; }
+      .basement { fill: #8d775f; }
+      .line { stroke: #5a4432; stroke-width: 4; fill: none; opacity: .24; }
+      .room { font: 700 22px 'JetBrains Mono', monospace; fill: #3a2e22; letter-spacing: 1px; }
+      .roomSmall { font: 700 18px 'JetBrains Mono', monospace; fill: #3a2e22; letter-spacing: 1px; }
+      .furnDark { fill: #6c4e3a; }
+      .furnMid { fill: #89674f; }
+      .furnSoft { fill: #776483; }
+      .furnPale { fill: #ece6dc; }
+      .rail { fill: #b08a64; }
+      .plant { fill: #667850; }
+      .rug { fill: #705a8c; }
+    </style>
+  </defs>
+
+  <rect width="1200" height="900" class="void"/>
+
+  <!-- apartment shell -->
+  <rect x="70" y="70" width="1060" height="760" class="wall"/>
+  <rect x="102" y="102" width="996" height="696" class="wood"/>
+
+  <!-- left stair spine -->
+  <rect x="102" y="102" width="116" height="300" class="wood2"/>
+  <rect x="118" y="118" width="84" height="268" fill="#b89570"/>
+  <path d="M126 360h68M126 330h68M126 300h68M126 270h68M126 240h68M126 210h68M126 180h68" class="line"/>
+  <text x="128" y="155" class="roomSmall">STAIRS</text>
+
+  <!-- balcony -->
+  <rect x="218" y="102" width="262" height="112" class="wood2"/>
+  <path d="M250 102v112M298 102v112M346 102v112M394 102v112M442 102v112" class="line"/>
+  <text x="300" y="166" class="room">BALCONY</text>
+
+  <!-- dining -->
+  <rect x="218" y="214" width="262" height="238" class="wood"/>
+  <circle cx="350" cy="330" r="84" class="rug"/>
+  <rect x="320" y="300" width="60" height="60" rx="8" class="furnMid"/>
+  <rect x="330" y="244" width="40" height="30" rx="6" class="furnDark"/>
+  <rect x="330" y="386" width="40" height="30" rx="6" class="furnDark"/>
+  <rect x="266" y="312" width="30" height="40" rx="6" class="furnDark"/>
+  <rect x="404" y="312" width="30" height="40" rx="6" class="furnDark"/>
+  <text x="274" y="258" class="room">DINING</text>
+
+  <!-- kitchen -->
+  <rect x="218" y="452" width="262" height="184" class="wood2"/>
+  <rect x="238" y="474" width="88" height="24" rx="4" class="furnDark"/>
+  <rect x="238" y="510" width="88" height="24" rx="4" class="furnDark"/>
+  <rect x="238" y="546" width="88" height="24" rx="4" class="furnDark"/>
+  <rect x="352" y="490" width="98" height="92" rx="10" class="furnMid"/>
+  <rect x="362" y="502" width="78" height="12" rx="3" class="furnPale"/>
+  <rect x="362" y="524" width="78" height="12" rx="3" class="furnPale"/>
+  <text x="264" y="610" class="room">KITCHEN</text>
+
+  <!-- storage -->
+  <rect x="102" y="402" width="116" height="234" class="wood2"/>
+  <rect x="120" y="424" width="34" height="190" rx="5" class="furnDark"/>
+  <rect x="162" y="424" width="34" height="190" rx="5" class="furnDark"/>
+  <text x="116" y="662" class="roomSmall">STORE</text>
+
+  <!-- living room -->
+  <rect x="480" y="102" width="382" height="350" class="wood"/>
+  <rect x="742" y="178" width="86" height="22" rx="5" class="furnDark"/>
+  <rect x="716" y="250" width="120" height="56" rx="16" class="furnPale"/>
+  <rect x="782" y="322" width="28" height="86" rx="10" class="furnPale"/>
+  <rect x="546" y="164" width="118" height="30" rx="6" class="furnDark"/>
+  <rect x="532" y="372" width="104" height="20" rx="5" class="furnDark"/>
+  <text x="564" y="220" class="room">LIVING ROOM</text>
+
+  <!-- bathroom -->
+  <rect x="862" y="102" width="236" height="184" class="tile"/>
+  <path d="M900 102v184M938 102v184M976 102v184M1014 102v184M1052 102v184M862 140h236M862 178h236M862 216h236M862 254h236" class="line"/>
+  <rect x="904" y="140" width="54" height="54" rx="27" fill="#f9f8f5"/>
+  <rect x="1004" y="134" width="48" height="96" rx="10" fill="#f8f7f3"/>
+  <text x="904" y="260" class="room">BATHROOM</text>
+
+  <!-- entry hall -->
+  <rect x="862" y="286" width="236" height="166" class="wood"/>
+  <rect x="914" y="384" width="84" height="22" rx="5" class="furnDark"/>
+  <rect x="1020" y="324" width="28" height="78" rx="6" class="furnMid"/>
+  <text x="900" y="356" class="room">ENTRY HALL</text>
+
+  <!-- study -->
+  <rect x="480" y="452" width="382" height="184" class="wood"/>
+  <rect x="516" y="486" width="140" height="26" rx="5" class="furnDark"/>
+  <rect x="676" y="486" width="44" height="98" rx="6" class="furnMid"/>
+  <rect x="542" y="548" width="80" height="44" rx="6" class="furnMid"/>
+  <text x="614" y="612" class="room">STUDY</text>
+
+  <!-- walls -->
+  <rect x="218" y="102" width="16" height="534" class="wall"/>
+  <rect x="480" y="102" width="16" height="534" class="wall"/>
+  <rect x="862" y="102" width="16" height="534" class="wall"/>
+  <rect x="102" y="214" width="378" height="16" class="wall"/>
+  <rect x="218" y="452" width="644" height="16" class="wall"/>
+  <rect x="862" y="286" width="236" height="16" class="wall"/>
+  <rect x="102" y="636" width="996" height="16" class="wall"/>
+
+  <!-- door gaps as darker marks -->
+  <rect x="346" y="214" width="54" height="16" fill="#d9c2a0"/>
+  <rect x="618" y="452" width="54" height="16" fill="#d9c2a0"/>
+  <rect x="948" y="286" width="54" height="16" fill="#d9c2a0"/>
+  <rect x="218" y="520" width="16" height="54" fill="#d1b58f"/>
+  <rect x="862" y="356" width="16" height="54" fill="#d9c2a0"/>
+
+  <!-- lower mini plans -->
+  <rect x="102" y="680" width="486" height="118" rx="10" fill="#2c2431"/>
+  <rect x="612" y="680" width="486" height="118" rx="10" fill="#2a241f"/>
+
+  <text x="126" y="716" class="roomSmall" fill="#f3efe7">UPPER FLOOR</text>
+  <rect x="126" y="736" width="138" height="32" rx="5" fill="#8d6b72"/>
+  <rect x="274" y="736" width="92" height="32" rx="5" fill="#6f617d"/>
+  <rect x="376" y="722" width="156" height="46" rx="8" fill="#6c5873"/>
+  <rect x="376" y="774" width="96" height="12" rx="5" fill="#9a8461"/>
+  <text x="144" y="758" class="roomSmall" fill="#f3efe7">PARENTS</text>
+  <text x="292" y="758" class="roomSmall" fill="#f3efe7">HALL</text>
+  <text x="394" y="750" class="roomSmall" fill="#f3efe7">CHILDREN</text>
+  <text x="392" y="790" class="roomSmall" fill="#f3efe7">PRAYER</text>
+
+  <text x="636" y="716" class="roomSmall" fill="#f3efe7">BASEMENT</text>
+  <rect x="636" y="736" width="96" height="32" rx="5" fill="#8b745d"/>
+  <rect x="744" y="722" width="170" height="46" rx="8" fill="#6b584a"/>
+  <rect x="926" y="722" width="78" height="46" rx="8" fill="#516672"/>
+  <rect x="1016" y="722" width="62" height="46" rx="8" fill="#635149"/>
+  <text x="650" y="758" class="roomSmall" fill="#f3efe7">STAIRS</text>
+  <text x="770" y="750" class="roomSmall" fill="#f3efe7">UTILITY</text>
+  <text x="936" y="750" class="roomSmall" fill="#f3efe7">SAFE</text>
+  <text x="1024" y="750" class="roomSmall" fill="#f3efe7">STORE</text>
+</svg>

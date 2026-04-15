@@ -10,23 +10,66 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="home">
-    <section class="home-panel controls-panel" aria-label="Controls and help">
-      <h1 class="home-title">Controls</h1>
-      <p class="home-sub">Easy guide for playing the game</p>
+  <main class="home home--menu">
+    <section class="menu-shell menu-shell--controls" aria-label="Controls and help">
+      <section class="menu-panel menu-panel--about-head">
+        <div class="menu-section-kicker">Controls & Play Guide</div>
+        <h1 class="home-title menu-title menu-title--small">Operational Manual</h1>
+        <p class="menu-lead menu-lead--small">A cleaner, production-style guide for movement, interaction, and high-pressure decision making during the night.</p>
+      </section>
 
-      <div class="controls-copy">
-        <p><strong>Move:</strong> Use <strong>W A S D</strong> or <strong>Arrow keys</strong>.</p>
-        <p><strong>Interact:</strong> Press <strong>Space</strong> when you stand close to an object or a person.</p>
-        <p><strong>Choices:</strong> Use <strong>Arrow Up</strong>, <strong>Arrow Down</strong>, and <strong>Enter</strong>. You can also press <strong>1</strong>, <strong>2</strong>, or <strong>3</strong>.</p>
-        <p><strong>Goal:</strong> Move between rooms, listen carefully, and make the best choice you can.</p>
-        <p><strong>Rooms:</strong> You can go to the kitchen, living room, children's room, and basement.</p>
-        <p><strong>Tip:</strong> Read the task list at the top of the game screen. It tells you what to do next.</p>
-      </div>
+      <section class="menu-panel">
+        <div class="controls-grid">
+          <article class="control-card">
+            <div class="control-key">W A S D</div>
+            <div class="control-key control-key--alt">Arrow Keys</div>
+            <h2 class="control-title">Movement</h2>
+            <p class="control-copy">Move between rooms, line up carefully with stairs and doors, and position yourself before interacting.</p>
+          </article>
 
-      <div class="home-actions">
-        <a class="menu-button" href="index.html">Back</a>
-        <a class="menu-button" href="game.html">Start Game</a>
+          <article class="control-card">
+            <div class="control-key">Space</div>
+            <h2 class="control-title">Interact</h2>
+            <p class="control-copy">Use nearby objects, drawers, information sources, and family members when you are close enough.</p>
+          </article>
+
+          <article class="control-card">
+            <div class="control-key">E</div>
+            <h2 class="control-title">Travel</h2>
+            <p class="control-copy">When you are standing at a doorway or stair trigger, press E to move deliberately into the connected room.</p>
+          </article>
+
+          <article class="control-card">
+            <div class="control-key">Up / Down</div>
+            <div class="control-key control-key--alt">Enter / 1 2 3</div>
+            <h2 class="control-title">Choices</h2>
+            <p class="control-copy">Navigate dialogue decisions with the keyboard and answer quickly when pressure rises.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="menu-panel">
+        <div class="menu-section-kicker">Field Notes</div>
+        <div class="about-summary-grid">
+          <article class="summary-card">
+            <h3 class="feature-title">Objective</h3>
+            <p class="feature-copy">Keep the family together, interpret conflicting signals, and survive the final hours before morning.</p>
+          </article>
+          <article class="summary-card">
+            <h3 class="feature-title">Current Spaces</h3>
+            <p class="feature-copy">The living room, kitchen, children's room, and basement form the core survival path of the build.</p>
+          </article>
+          <article class="summary-card">
+            <h3 class="feature-title">Best Practice</h3>
+            <p class="feature-copy">Watch the task queue and system status closely. They are the cleanest guide to what the game wants next.</p>
+          </article>
+        </div>
+      </section>
+
+      <div class="menu-actions menu-actions--about">
+        <a class="menu-button menu-button--ghost" href="map.html">Apartment Map</a>
+        <a class="menu-button menu-button--ghost" href="index.html">Back To Menu</a>
+        <a class="menu-button menu-button--primary" href="game.html">Start Game</a>
       </div>
     </section>
   </main>

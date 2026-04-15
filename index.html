@@ -10,47 +10,197 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="home">
-    <section class="home-panel" id="main-menu-panel" aria-label="Main menu">
-      <h1 class="home-title">Shesh Prohor</h1>
-      <p class="home-sub">A small family. One long night. Keep everyone safe until morning.</p>
+  <main class="home home--menu">
+    <section class="menu-shell" id="main-menu-panel" aria-label="Main menu">
+      <div class="menu-hero">
+        <div class="menu-eyebrow">Narrative Survival Thriller</div>
+        <h1 class="home-title menu-title">Shesh Prohor</h1>
+        <p class="menu-lead">A domestic survival thriller set inside one realistic multi-level family apartment.</p>
+        <p class="home-sub menu-sub">Keep everyone together, move room to room under pressure, and survive the last watch before morning.</p>
 
-      <div class="home-actions">
-        <a class="menu-button" id="start-game-button" href="game.html">Start Game</a>
-        <a class="menu-button" href="controls.html">Controls</a>
-        <button class="menu-button" id="about-button" type="button">About</button>
+        <div class="difficulty-picker" aria-label="Difficulty selection">
+          <div class="difficulty-kicker">Choose Your Night</div>
+          <div class="difficulty-copy">Select how harsh the apartment feels before the run begins. Your choice changes pressure, score reward, battery drain, and forgiveness.</div>
+          <div class="difficulty-options" role="group" aria-label="Select difficulty">
+            <button class="difficulty-option" data-difficulty="easy" type="button" aria-pressed="false">
+              <span class="difficulty-option-label">Easy</span>
+              <span class="difficulty-option-meta">More time, softer penalties</span>
+            </button>
+            <button class="difficulty-option is-selected" data-difficulty="normal" type="button" aria-pressed="true">
+              <span class="difficulty-option-label">Normal</span>
+              <span class="difficulty-option-meta">Balanced intended experience</span>
+            </button>
+            <button class="difficulty-option" data-difficulty="hard" type="button" aria-pressed="false">
+              <span class="difficulty-option-label">Hard</span>
+              <span class="difficulty-option-meta">Tighter timings, higher score</span>
+            </button>
+          </div>
+          <div class="difficulty-highlight" id="difficulty-highlight" aria-live="polite">
+            <div class="difficulty-highlight-title">Normal Mode</div>
+            <div class="difficulty-highlight-copy">The intended balance of pressure, battery drain, and scoring.</div>
+          </div>
+        </div>
+
+        <div class="menu-actions">
+          <a class="menu-button menu-button--primary" id="start-game-button" href="game.html">Start Game</a>
+          <a class="menu-button menu-button--ghost" href="map.html">Apartment Map</a>
+          <a class="menu-button menu-button--ghost" href="controls.html">Controls</a>
+          <button class="menu-button menu-button--ghost" id="about-button" type="button">About</button>
+        </div>
+
+        <div class="menu-stat-grid" aria-label="Game highlights">
+          <article class="menu-stat-card">
+            <div class="menu-stat-value">3</div>
+            <div class="menu-stat-label">Minute Play Time</div>
+          </article>
+          <article class="menu-stat-card">
+            <div class="menu-stat-value">3+1</div>
+            <div class="menu-stat-label">Endings</div>
+          </article>
+          <article class="menu-stat-card">
+            <div class="menu-stat-value menu-stat-value--text">Realistic</div>
+            <div class="menu-stat-label">Apartment Layout</div>
+          </article>
+        </div>
       </div>
+
+      <section class="menu-panel menu-panel--story" aria-label="Story overview">
+        <div class="menu-section-kicker">Premise</div>
+        <h2 class="menu-section-title">One apartment. One family. One impossible night.</h2>
+        <p class="menu-panel-copy">The fear does not come from monsters filling every corridor. It comes from distance, poor timing, dim rooms, low battery, and the weight of making the wrong call while your children wait for reassurance.</p>
+      </section>
+
+      <section class="menu-panel menu-panel--layout" aria-label="Apartment architecture">
+        <div class="menu-section-kicker">Architecture</div>
+        <h2 class="menu-section-title">A believable multi-level home</h2>
+        <div class="plan-grid">
+          <article class="plan-card">
+            <div class="plan-level">Main Floor</div>
+            <div class="plan-map">Balcony
+Dining
+Living Room
+Kitchen
+Entry Hall
+Bathroom
+Study
+Storage</div>
+          </article>
+          <article class="plan-card">
+            <div class="plan-level">Upper Floor</div>
+            <div class="plan-map">Upper Hall
+Children's Room
+Parents' Room
+Prayer Nook</div>
+          </article>
+          <article class="plan-card">
+            <div class="plan-level">Lower Floor</div>
+            <div class="plan-map">Basement Stairs
+Utility Area
+Safe Corner
+Store Room</div>
+          </article>
+        </div>
+      </section>
+
+      <section class="menu-panel menu-panel--features" aria-label="Gameplay pillars">
+        <div class="menu-section-kicker">Core Experience</div>
+        <div class="feature-grid">
+          <article class="feature-card">
+            <h3 class="feature-title">Room-Based Tension</h3>
+            <p class="feature-copy">Every event plays out through believable movement across domestic spaces instead of abstract menus.</p>
+          </article>
+          <article class="feature-card">
+            <h3 class="feature-title">Physical Survival</h3>
+            <p class="feature-copy">You act through doors, stairs, children, drawers, the phone, the radio, and the basement route.</p>
+          </article>
+          <article class="feature-card">
+            <h3 class="feature-title">Grounded Horror</h3>
+            <p class="feature-copy">The apartment remains realistic, but its layout supports suspense, urgency, and emotional weight.</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="menu-panel menu-panel--map-preview" aria-label="Apartment map preview">
+        <div class="menu-section-kicker">Apartment Map</div>
+        <h2 class="menu-section-title">Explore The Full Home Layout</h2>
+        <p class="menu-panel-copy">Review the current realistic apartment plan with public rooms, private upstairs spaces, and basement routes before entering the game.</p>
+        <div class="map-preview-grid">
+          <article class="map-preview-card">
+            <div class="map-preview-label">Main Floor</div>
+            <div class="map-preview-copy">Living Room, Kitchen, Dining, Entry Hall, Bathroom, Study, Storage, Balcony</div>
+          </article>
+          <article class="map-preview-card">
+            <div class="map-preview-label">Upper Floor</div>
+            <div class="map-preview-copy">Upper Hall, Children's Room, Parents' Room, Prayer Nook</div>
+          </article>
+          <article class="map-preview-card">
+            <div class="map-preview-label">Lower Floor</div>
+            <div class="map-preview-copy">Basement Stairs, Utility Area, Safe Corner, Store Room</div>
+          </article>
+        </div>
+        <div class="menu-actions menu-actions--inline">
+          <a class="menu-button menu-button--primary" href="map.html">Open Apartment Map</a>
+        </div>
+      </section>
     </section>
 
-    <section class="home-panel home-panel--narrow is-hidden" id="about-panel" aria-label="About Shesh Prohor" hidden>
-      <h1 class="home-title">About</h1>
-      <p class="home-sub">Contributors behind the current build of Shesh Prohor.</p>
-
-      <div class="about-list">
-        <article class="about-card">
-          <h2 class="about-name">Rubaiat Ar Rabib</h2>
-          <p class="about-line">GitHub: <a href="https://github.com/sloth-262" target="_blank" rel="noreferrer">sloth-262</a></p>
-          <p class="about-line">Email: <a href="mailto:rubaiat.rabeeb66@gmail.com">rubaiat.rabeeb66@gmail.com</a></p>
-        </article>
-
-        <article class="about-card">
-          <h2 class="about-name">Fairuz Anadi</h2>
-          <p class="about-line">GitHub: <a href="https://github.com/fairuz-anadi" target="_blank" rel="noreferrer">fairuz-anadi</a></p>
-          <p class="about-line">Email: <a href="mailto:fairuzanadi.048@gmail.com">fairuzanadi.048@gmail.com</a></p>
-        </article>
-
-        <article class="about-card">
-          <h2 class="about-name">Mustakim Musa</h2>
-          <p class="about-line">GitHub: <a href="https://github.com/mustakim0101" target="_blank" rel="noreferrer">mustakim0101</a></p>
-          <p class="about-line">Email: <a href="mailto:mustakim7038@gmail.com">mustakim7038@gmail.com</a></p>
-        </article>
+    <section class="menu-shell menu-shell--about is-hidden" id="about-panel" aria-label="About Shesh Prohor" hidden>
+      <div class="menu-topbar">
+        <button class="menu-button menu-button--primary" id="about-back-button-top" type="button">Back To Main Menu</button>
+        <a class="menu-button menu-button--ghost" href="map.html">Apartment Map</a>
       </div>
+      <section class="menu-panel menu-panel--about-head">
+        <div class="menu-section-kicker">About The Build</div>
+        <h1 class="home-title menu-title menu-title--small">Team & Project</h1>
+        <p class="menu-lead menu-lead--small">A collaborative browser-based narrative thriller built around domestic space, atmosphere, and difficult choices.</p>
+      </section>
 
-      <div class="home-actions">
-        <button class="menu-button" id="about-back-button" type="button">Back</button>
-      </div>
+      <section class="menu-panel">
+        <div class="menu-section-kicker">Contributors</div>
+        <div class="about-list about-list--pro">
+          <article class="about-card about-card--pro">
+            <div class="about-role">Development</div>
+            <h2 class="about-name">Rubaiat Ar Rabib</h2>
+            <p class="about-line">GitHub: <a href="https://github.com/sloth-262" target="_blank" rel="noreferrer">sloth-262</a></p>
+            <p class="about-line">Email: <a href="mailto:rubaiat.rabeeb66@gmail.com">rubaiat.rabeeb66@gmail.com</a></p>
+          </article>
+
+          <article class="about-card about-card--pro">
+            <div class="about-role">Narrative & Design</div>
+            <h2 class="about-name">Fairuz Anadi</h2>
+            <p class="about-line">GitHub: <a href="https://github.com/fairuz-anadi" target="_blank" rel="noreferrer">fairuz-anadi</a></p>
+            <p class="about-line">Email: <a href="mailto:fairuzanadi.048@gmail.com">fairuzanadi.048@gmail.com</a></p>
+          </article>
+
+          <article class="about-card about-card--pro">
+            <div class="about-role">Systems & Support</div>
+            <h2 class="about-name">Mustakim Musa</h2>
+            <p class="about-line">GitHub: <a href="https://github.com/mustakim0101" target="_blank" rel="noreferrer">mustakim0101</a></p>
+            <p class="about-line">Email: <a href="mailto:mustakim7038@gmail.com">mustakim7038@gmail.com</a></p>
+          </article>
+        </div>
+      </section>
+
+      <section class="menu-panel">
+        <div class="menu-section-kicker">Project Direction</div>
+        <div class="about-summary-grid">
+          <article class="summary-card">
+            <h3 class="feature-title">Tone</h3>
+            <p class="feature-copy">Quiet dread, believable architecture, and pressure created by distance and uncertainty.</p>
+          </article>
+          <article class="summary-card">
+            <h3 class="feature-title">Blueprint</h3>
+            <p class="feature-copy">A realistic home layout that supports grounded traversal, family care, and escalating crisis beats.</p>
+          </article>
+          <article class="summary-card">
+            <h3 class="feature-title">Platform</h3>
+            <p class="feature-copy">Browser-based, keyboard-driven, lightweight, and built to stay readable during a game jam timeline.</p>
+          </article>
+        </div>
+      </section>
     </section>
   </main>
+  <script src="src/config/difficultyConfig.js"></script>
   <script src="src/audio/audio.js"></script>
   <script src="src/menu/menu.js"></script>
 </body>
