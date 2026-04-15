@@ -1,6 +1,13 @@
 (function () {
   const ROOM_IDS = ["living-room", "kitchen", "children-room", "basement"];
   const BATTERY_DRAIN_PER_SECOND = 40 / (2.5 * 60);
+  const BASE_BATTERY_DRAIN_PER_SECOND = 40 / (7 * 60);
+  const CANDLE_BURN_SECONDS_BY_THREAT = {
+    2: 65,
+    3: 55,
+    4: 45,
+    5: 35,
+  };
 
   const TASK_IDS = {
     reachChildrenRoom: "reachChildrenRoom",
@@ -661,6 +668,12 @@
       }
 
       if (state.systems.candleLit) {
+        const fuel = Math.max(0, Math.min(1, state.systems.candleFuel || 0));
+        if (state.systems.threat >= 2 && state.systems.blackout && fuel < 0.995) {
+          ui.phoneStatus.textContent = `Candle fading: ${Math.round(fuel * 100)}%.`;
+          return;
+        }
+
         ui.phoneStatus.textContent = getStatusText("candleLit", "Candle lit. Stay close and keep moving.");
         return;
       }
@@ -705,6 +718,8 @@
         return;
       }
 
+      const fuel = Math.max(0, Math.min(1, state.systems.candleFuel || 0));
+      const fade = 0.25 + fuel * 0.75;
       const playerCenter = getPlayerCenter();
       const rect = canvas.getBoundingClientRect();
       const viewportWidth = Math.max(window.innerWidth, 1);
@@ -716,8 +731,8 @@
 
       bodyStyle.setProperty("--light-x", `${(xRatio * 100).toFixed(2)}%`);
       bodyStyle.setProperty("--light-y", `${(yRatio * 100).toFixed(2)}%`);
-      bodyStyle.setProperty("--light-size", "20%");
-      bodyStyle.setProperty("--light-opacity", "0.82");
+      bodyStyle.setProperty("--light-size", `${(20 * (0.65 + fuel * 0.55)).toFixed(2)}%`);
+      bodyStyle.setProperty("--light-opacity", (0.82 * fade).toFixed(3));
     }
 
     function formatTime(totalSeconds) {
@@ -890,7 +905,9 @@
 
     function updateNightClock(dt) {
       if (!state.ui.levelOverlay && !state.systems.gameOver && !state.systems.familySafe) {
-        state.systems.night.remaining = Math.max(0, state.systems.night.remaining - dt);
+        const threatLevel = Math.floor(state.systems.threat);
+        const hurryMultiplier = 1 + Math.max(0, threatLevel - 2) * 0.12;
+        state.systems.night.remaining = Math.max(0, state.systems.night.remaining - dt * hurryMultiplier);
       }
     }
 
@@ -1318,6 +1335,7 @@
               setInteractionHint(getHintText("relightCandle", "Press E or SPACE again on the drawer to light the candle."));
             } else if (!state.systems.candleLit) {
               state.systems.candleLit = true;
+              state.systems.candleFuel = 1;
               completeTask("lightCandle");
               addScore(scoreConfig.milestones.event03Lit || 0);
               state.events.completed.event03 = true;
@@ -1412,9 +1430,48 @@
     }
 
     function updateBattery(dt) {
-      if (!state.systems.gameOver && !state.systems.familySafe && state.systems.blackout && !state.systems.candleLit) {
-        addBatteryDelta(-dt * BATTERY_DRAIN_PER_SECOND);
+      if (state.systems.gameOver || state.systems.familySafe) {
+        return;
       }
+      if (state.ui.levelOverlay) {
+        return;
+      }
+
+      const threatMultiplier = 1 + Math.max(0, state.systems.threat - 1) * 0.2;
+      addBatteryDelta(-dt * BASE_BATTERY_DRAIN_PER_SECOND * threatMultiplier);
+
+      if (state.systems.blackout && !state.systems.candleLit) {
+        const blackoutMultiplier = 1 + Math.max(0, state.systems.threat - 1) * 0.15;
+        addBatteryDelta(-dt * BATTERY_DRAIN_PER_SECOND * blackoutMultiplier);
+      }
+    }
+
+    function updateCandleFuel(dt) {
+      if (state.systems.gameOver || state.systems.familySafe) {
+        return;
+      }
+      if (state.ui.levelOverlay) {
+        return;
+      }
+
+      if (!state.systems.blackout || !state.systems.candleLit || state.systems.threat < 2) {
+        state.systems.candleFuel = 1;
+        return;
+      }
+
+      const threatLevel = Math.max(2, Math.min(5, Math.floor(state.systems.threat)));
+      const burnSeconds = CANDLE_BURN_SECONDS_BY_THREAT[threatLevel] || 55;
+      const nextFuel = Math.max(0, (state.systems.candleFuel || 0) - dt / Math.max(10, burnSeconds));
+      state.systems.candleFuel = nextFuel;
+
+      if (nextFuel > 0) {
+        return;
+      }
+
+      state.systems.candleLit = false;
+      setInteractionHint(
+        getHintText("candleWentOut", "The candle sputtered out. Run back to the kitchen drawer to relight it."),
+      );
     }
 
     function maybeTriggerGameOver() {
@@ -1608,6 +1665,7 @@
         {
           carryChildren: state.events.activeEventId === "event06" && state.room.currentRoomId === "basement",
           showCandle: state.systems.candleLit,
+          candleStrength: state.systems.candleFuel,
         },
       );
       drawCollisionDebugOverlay(currentRoom, window.PlayerRenderer.getSpriteSize(sprite));
@@ -1661,6 +1719,7 @@
       updateTimer(dt);
       updateNightClock(dt);
       updateBattery(dt);
+      updateCandleFuel(dt);
       maybeTriggerGameOver();
       updateAtmosphereLighting();
       updateInteractionState();
