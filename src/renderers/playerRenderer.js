@@ -9,8 +9,24 @@
     basementStairs: { path: "assets/images/objects/stair.png", scale: 3.4 },
     safeCorner: { path: "assets/images/objects/safePlace.png", scale: 5.5 },
   };
+  const CARRIED_OLDER_CHILD_SPRITE = {
+    path: "assets/images/characters/mom1.png",
+    frameW: 64,
+    frameH: 64,
+    cols: 4,
+    rows: 4,
+  };
+  const CARRIED_YOUNGER_CHILD_SPRITE = {
+    path: "assets/images/characters/mom2.png",
+    frameW: 32,
+    frameH: 48,
+    cols: 4,
+    rows: 4,
+  };
 
   const objectImages = {};
+  let carriedOlderChildImage = null;
+  let carriedYoungerChildImage = null;
 
   function getObjectImage(id) {
     const config = OBJECT_IMAGE_CONFIG[id];
@@ -25,6 +41,24 @@
     }
 
     return objectImages[id];
+  }
+
+  function getCarriedOlderChildImage() {
+    if (!carriedOlderChildImage) {
+      carriedOlderChildImage = new Image();
+      carriedOlderChildImage.src = CARRIED_OLDER_CHILD_SPRITE.path;
+    }
+
+    return carriedOlderChildImage;
+  }
+
+  function getCarriedYoungerChildImage() {
+    if (!carriedYoungerChildImage) {
+      carriedYoungerChildImage = new Image();
+      carriedYoungerChildImage.src = CARRIED_YOUNGER_CHILD_SPRITE.path;
+    }
+
+    return carriedYoungerChildImage;
   }
 
   function getSpriteSize(sprite) {
@@ -228,51 +262,121 @@
     const pulse = Math.sin(performance.now() * 0.008) * 0.5 + 0.5;
     const facingLeft = direction === 1;
     const facingRight = direction === 2;
-    const shoulderY = position.y + size.height * 0.34;
+    const shoulderY = position.y + size.height * 0.32;
     const centerX = position.x + size.width * 0.5;
-    const frontChildX = facingLeft
-      ? position.x + size.width * 0.18
+    const olderChildX = facingLeft
+      ? position.x + size.width * 0.15
       : facingRight
-        ? position.x + size.width * 0.82
-        : centerX + size.width * 0.18;
-    const backChildX = facingLeft
+        ? position.x + size.width * 0.85
+        : centerX + size.width * 0.24;
+    const youngerChildX = facingLeft
       ? position.x + size.width * 0.72
       : facingRight
         ? position.x + size.width * 0.28
-        : centerX - size.width * 0.18;
+        : centerX - size.width * 0.23;
+    const olderChildY = position.y + size.height * 0.12;
+    const youngerChildY = position.y + size.height * 0.24;
+    const bundleY = shoulderY + size.height * 0.11;
+    const olderChildImage = getCarriedOlderChildImage();
+    const youngerChildImage = getCarriedYoungerChildImage();
+    const olderChildRow = Math.min(direction, CARRIED_OLDER_CHILD_SPRITE.rows - 1);
+    const youngerChildRow = Math.min(direction, CARRIED_YOUNGER_CHILD_SPRITE.rows - 1);
+    const olderChildFrame = direction === 0 ? 2 : 1;
+    const youngerChildFrame = direction === 0 ? 1 : 0;
+    const olderChildWidth = size.width * 0.5;
+    const olderChildHeight = olderChildWidth * (CARRIED_OLDER_CHILD_SPRITE.frameH / CARRIED_OLDER_CHILD_SPRITE.frameW);
+    const youngerChildWidth = size.width * 0.33;
+    const youngerChildHeight = youngerChildWidth * (CARRIED_YOUNGER_CHILD_SPRITE.frameH / CARRIED_YOUNGER_CHILD_SPRITE.frameW);
 
     context.save();
 
     const wrapGlow = context.createRadialGradient(
       centerX,
-      shoulderY + size.height * 0.1,
+      bundleY,
       6,
       centerX,
-      shoulderY + size.height * 0.1,
-      size.width * 0.52,
+      bundleY,
+      size.width * 0.62,
     );
-    wrapGlow.addColorStop(0, `rgba(255, 231, 177, ${0.12 + pulse * 0.05})`);
+    wrapGlow.addColorStop(0, `rgba(255, 231, 177, ${0.16 + pulse * 0.06})`);
     wrapGlow.addColorStop(1, "rgba(255, 231, 177, 0)");
     context.fillStyle = wrapGlow;
     context.beginPath();
-    context.ellipse(centerX, shoulderY + size.height * 0.08, size.width * 0.52, size.height * 0.28, 0, 0, Math.PI * 2);
+    context.ellipse(centerX, bundleY, size.width * 0.68, size.height * 0.36, 0, 0, Math.PI * 2);
     context.fill();
 
-    context.fillStyle = "#d8c4d2";
+    context.fillStyle = "rgba(28, 18, 30, 0.22)";
     context.beginPath();
-    context.arc(frontChildX, shoulderY, size.width * 0.09, 0, Math.PI * 2);
-    context.arc(backChildX, shoulderY + size.height * 0.02, size.width * 0.085, 0, Math.PI * 2);
+    context.ellipse(centerX, bundleY + size.height * 0.13, size.width * 0.54, size.height * 0.17, 0, 0, Math.PI * 2);
     context.fill();
 
-    context.fillStyle = "#f0dfe9";
+    if (olderChildImage.complete) {
+      context.imageSmoothingEnabled = false;
+      context.filter = `brightness(${1.04 + pulse * 0.04}) saturate(0.94)`;
+      context.drawImage(
+        olderChildImage,
+        olderChildFrame * CARRIED_OLDER_CHILD_SPRITE.frameW,
+        olderChildRow * CARRIED_OLDER_CHILD_SPRITE.frameH,
+        CARRIED_OLDER_CHILD_SPRITE.frameW,
+        CARRIED_OLDER_CHILD_SPRITE.frameH,
+        olderChildX - olderChildWidth * 0.5,
+        olderChildY,
+        olderChildWidth,
+        olderChildHeight,
+      );
+      context.filter = "none";
+    }
+
+    if (youngerChildImage.complete) {
+      context.imageSmoothingEnabled = false;
+      context.filter = `brightness(${1.08 + pulse * 0.05}) saturate(0.9)`;
+      context.drawImage(
+        youngerChildImage,
+        youngerChildFrame * CARRIED_YOUNGER_CHILD_SPRITE.frameW,
+        youngerChildRow * CARRIED_YOUNGER_CHILD_SPRITE.frameH,
+        CARRIED_YOUNGER_CHILD_SPRITE.frameW,
+        CARRIED_YOUNGER_CHILD_SPRITE.frameH,
+        youngerChildX - youngerChildWidth * 0.5,
+        youngerChildY,
+        youngerChildWidth,
+        youngerChildHeight,
+      );
+      context.filter = "none";
+    }
+
+    context.fillStyle = "rgba(238, 223, 234, 0.9)";
     context.beginPath();
-    context.roundRect(frontChildX - size.width * 0.12, shoulderY + size.height * 0.02, size.width * 0.24, size.height * 0.2, 8);
-    context.roundRect(backChildX - size.width * 0.11, shoulderY + size.height * 0.05, size.width * 0.22, size.height * 0.18, 8);
+    context.roundRect(centerX - size.width * 0.43, bundleY - size.height * 0.01, size.width * 0.86, size.height * 0.13, 12);
     context.fill();
 
-    context.fillStyle = "rgba(106, 82, 116, 0.45)";
+    context.fillStyle = "rgba(196, 162, 186, 0.84)";
     context.beginPath();
-    context.roundRect(centerX - size.width * 0.32, shoulderY + size.height * 0.06, size.width * 0.64, size.height * 0.08, 10);
+    context.roundRect(centerX - size.width * 0.4, bundleY + size.height * 0.01, size.width * 0.8, size.height * 0.09, 12);
+    context.fill();
+
+    context.strokeStyle = "rgba(255, 241, 214, 0.5)";
+    context.lineWidth = 2;
+    context.beginPath();
+    context.moveTo(centerX - size.width * 0.31, bundleY + size.height * 0.025);
+    context.lineTo(centerX + size.width * 0.29, bundleY + size.height * 0.025);
+    context.stroke();
+
+    context.fillStyle = "rgba(255, 244, 214, 0.9)";
+    context.beginPath();
+    context.arc(youngerChildX - size.width * 0.012, youngerChildY + size.height * 0.1, size.width * 0.008, 0, Math.PI * 2);
+    context.arc(youngerChildX + size.width * 0.012, youngerChildY + size.height * 0.1, size.width * 0.008, 0, Math.PI * 2);
+    context.fill();
+
+    context.strokeStyle = "rgba(90, 66, 74, 0.45)";
+    context.lineWidth = 1.2;
+    context.beginPath();
+    context.arc(youngerChildX, youngerChildY + size.height * 0.12, size.width * 0.02, 0.15 * Math.PI, 0.85 * Math.PI);
+    context.stroke();
+
+    context.fillStyle = "rgba(255, 236, 200, 0.22)";
+    context.beginPath();
+    context.ellipse(olderChildX, olderChildY + olderChildHeight * 0.58, olderChildWidth * 0.52, olderChildHeight * 0.18, 0, 0, Math.PI * 2);
+    context.ellipse(youngerChildX, youngerChildY + youngerChildHeight * 0.58, youngerChildWidth * 0.48, youngerChildHeight * 0.22, 0, 0, Math.PI * 2);
     context.fill();
 
     context.restore();

@@ -98,6 +98,7 @@
       { id: "kitchenDrawer2", label: "Second Drawer", x: 0.44, y: 0.76, radius: 0.07 },
       { id: "kitchenDrawer3", label: "Third Drawer", x: 0.58, y: 0.76, radius: 0.07 },
       { id: "phone", label: "Phone", x: 0.78, y: 0.58, radius: 0.06 },
+      { id: "cat", label: "Cat", x: 0.34, y: 0.79, radius: 0.07 },
     ],
     gates: [
       {
