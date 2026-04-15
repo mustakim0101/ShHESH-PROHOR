@@ -13,15 +13,15 @@
   const difficultyDescriptions = {
     easy: {
       title: "Easy Mode",
-      copy: "Longer breathing room, gentler pressure, and a lower score multiplier for a more forgiving run.",
+      copy: "Longer timers and a lower score multiplier for a more forgiving run.",
     },
     normal: {
       title: "Normal Mode",
-      copy: "The intended balance of pressure, battery drain, and scoring.",
+      copy: "Standard timers with the baseline score multiplier.",
     },
     hard: {
       title: "Hard Mode",
-      copy: "Shorter windows, faster loss, and a higher score reward if you can survive the night cleanly.",
+      copy: "Shorter timers and a higher score multiplier if you can stay clean under pressure.",
     },
   };
 

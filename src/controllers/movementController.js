@@ -82,48 +82,11 @@
   }
 
   function isWalkablePosition(position, bounds, spriteSize, room) {
-    const walkableZones = room?.walkableZones;
-    const blockedZones = room?.blockedZones || [];
-
-    if (!Array.isArray(walkableZones) || walkableZones.length === 0) {
-      return true;
-    }
-
-    const footProbe = getFootProbe(position, spriteSize, bounds);
-    const insideWalkableZone = walkableZones.some((zone) => isInsideZone(footProbe, zone));
-    const insideBlockedZone = blockedZones.some((zone) => isInsideZone(footProbe, zone));
-
-    return insideWalkableZone && !insideBlockedZone;
+    return true;
   }
 
   function resolveRoomCollision(currentPosition, candidatePosition, bounds, spriteSize, room) {
-    const clampedCandidate = clampPosition(candidatePosition, bounds, spriteSize);
-
-    if (isWalkablePosition(clampedCandidate, bounds, spriteSize, room)) {
-      return clampedCandidate;
-    }
-
-    const xOnly = clampPosition(
-      { x: clampedCandidate.x, y: currentPosition.y },
-      bounds,
-      spriteSize,
-    );
-
-    if (isWalkablePosition(xOnly, bounds, spriteSize, room)) {
-      return xOnly;
-    }
-
-    const yOnly = clampPosition(
-      { x: currentPosition.x, y: clampedCandidate.y },
-      bounds,
-      spriteSize,
-    );
-
-    if (isWalkablePosition(yOnly, bounds, spriteSize, room)) {
-      return yOnly;
-    }
-
-    return clampPosition(currentPosition, bounds, spriteSize);
+    return clampPosition(candidatePosition, bounds, spriteSize);
   }
 
   function getCandidateOffsets(distance) {
@@ -143,34 +106,7 @@
   }
 
   function findNearestWalkablePosition(position, bounds, spriteSize, room) {
-    const clampedStart = clampPosition(position, bounds, spriteSize);
-
-    if (isWalkablePosition(clampedStart, bounds, spriteSize, room)) {
-      return clampedStart;
-    }
-
-    // Room transfers can land beside a stair rail or blocked strip.
-    // Search nearby spots so each spawn still resolves onto valid floor.
-    for (let distance = 8; distance <= 96; distance += 8) {
-      const offsets = getCandidateOffsets(distance);
-
-      for (const offset of offsets) {
-        const candidate = clampPosition(
-          {
-            x: clampedStart.x + offset.x,
-            y: clampedStart.y + offset.y,
-          },
-          bounds,
-          spriteSize,
-        );
-
-        if (isWalkablePosition(candidate, bounds, spriteSize, room)) {
-          return candidate;
-        }
-      }
-    }
-
-    return clampedStart;
+    return clampPosition(position, bounds, spriteSize);
   }
 
   window.MovementController = {

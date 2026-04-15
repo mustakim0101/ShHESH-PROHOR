@@ -9,3 +9,4 @@ Use this folder for:
 - event scripts
 - interactable data
 - ending text
+- scoring reference: [score_chart.md](d:/Project/GameJam/SHESH-PROHOR/src/content/score_chart.md)

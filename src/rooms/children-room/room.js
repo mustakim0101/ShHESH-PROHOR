@@ -16,6 +16,21 @@
       },
     ],
     blockedZones: [
+      // Top black margin above the visible room.
+      {
+        x: { start: 0.0, end: 1.0 },
+        y: { start: 0.0, end: 0.1 },
+      },
+      // Left outer black margin around the stair cutout.
+      {
+        x: { start: 0.0, end: 0.09 },
+        y: { start: 0.1, end: 0.86 },
+      },
+      // Right outer black margin beside the room frame.
+      {
+        x: { start: 0.91, end: 1.0 },
+        y: { start: 0.1, end: 0.88 },
+      },
       // Front railing edge across the upper landing.
       {
         x: { start: 0.18, end: 0.83 },
@@ -39,18 +54,18 @@
       },
       // Lower-left outer void around the stair cutout.
       {
-        x: { start: 0.02, end: 0.19 },
-        y: { start: 0.84, end: 0.99 },
+        x: { start: 0.0, end: 0.2 },
+        y: { start: 0.82, end: 1.0 },
       },
       // Lower-right void outside the visible bedroom floor.
       {
-        x: { start: 0.82, end: 0.98 },
-        y: { start: 0.68, end: 0.99 },
+        x: { start: 0.8, end: 1.0 },
+        y: { start: 0.66, end: 1.0 },
       },
       // Bottom border below the visible floorboards.
       {
         x: { start: 0.19, end: 0.82 },
-        y: { start: 0.88, end: 0.99 },
+        y: { start: 0.87, end: 1.0 },
       },
     ],
     interactables: [

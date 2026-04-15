@@ -19,6 +19,11 @@
         x: { start: 0.72, end: 0.8 },
         y: { start: 0.57, end: 0.64 },
       },
+      // Right-side exit lane to the living room.
+      {
+        x: { start: 0.7, end: 0.81 },
+        y: { start: 0.65, end: 0.87 },
+      },
       // Bottom doorway tiles where the player enters and exits.
       {
         x: { start: 0.44, end: 0.56 },
@@ -29,17 +34,17 @@
       // Upper-left black void outside the room walls.
       {
         x: { start: 0.0, end: 0.24 },
-        y: { start: 0.0, end: 0.35 },
+        y: { start: 0.0, end: 0.41 },
       },
       // Upper-right black void outside the room walls.
       {
-        x: { start: 0.74, end: 1.0 },
-        y: { start: 0.0, end: 0.37 },
+        x: { start: 0.76, end: 1.0 },
+        y: { start: 0.0, end: 0.42 },
       },
-      // Top wall and void above the visible room floor.
+      // Top wall and black void above the visible room floor.
       {
         x: { start: 0.08, end: 0.92 },
-        y: { start: 0.04, end: 0.33 },
+        y: { start: 0.04, end: 0.36 },
       },
       // Front railing edge of the raised counter section.
       // Keep this shallow so it does not erase the narrow access lip under the radio.
@@ -58,10 +63,10 @@
         x: { start: 0.0, end: 0.26 },
         y: { start: 0.34, end: 0.61 },
       },
-      // Lower the right-side blocked region a bit to match the marked boundary near the wall side.
+      // Lower the right-side blocked region a bit to cover the black side cutout.
       {
-        x: { start: 0.8, end: 0.96 },
-        y: { start: 0.34, end: 0.66 },
+        x: { start: 0.82, end: 0.98 },
+        y: { start: 0.33, end: 0.66 },
       },
       // Left wall strip so the player cannot slide into the black cutout.
       {
@@ -75,17 +80,17 @@
       },
       // Right outer void beside the room art.
       {
-        x: { start: 0.84, end: 1.0 },
-        y: { start: 0.5, end: 1.0 },
+        x: { start: 0.86, end: 1.0 },
+        y: { start: 0.46, end: 1.0 },
       },
-      // Bottom corners outside the doorway stem.
+      // Bottom-left and bottom-right black corners outside the doorway stem.
       {
         x: { start: 0.0, end: 0.43 },
-        y: { start: 0.8, end: 1.0 },
+        y: { start: 0.78, end: 1.0 },
       },
       {
-        x: { start: 0.68, end: 1.0 },
-        y: { start: 0.88, end: 1.0 },
+        x: { start: 0.66, end: 1.0 },
+        y: { start: 0.89, end: 1.0 },
       },
     ],
     interactables: [
@@ -96,10 +101,9 @@
     ],
     gates: [
       {
-        area: {
-          x: { start: 0.72, end: 0.8 },
-          y: { start: 0.7, end: 0.87 },
-        },
+        side: "right",
+        range: { start: 0.56, end: 0.9 },
+        threshold: 42,
         label: "enter Living Room",
         targetRoomId: "living-room",
         spawn: { x: 0.16, y: 0.68 },
