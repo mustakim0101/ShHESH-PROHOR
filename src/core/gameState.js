@@ -36,6 +36,7 @@
         battery: 40,
         score: 0,
         candleLit: false,
+        candleFuel: 1,
         blackout: false,
         gameOver: false,
         familySafe: false,

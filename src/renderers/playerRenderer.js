@@ -225,17 +225,19 @@
     return { x: position.x + size.width * 0.58, y: position.y + size.height * 0.54 };
   }
 
-  function drawCarriedCandle(context, position, size, direction) {
+  function drawCarriedCandle(context, position, size, direction, strength = 1) {
     const anchor = getCandleAnchor(position, size, direction);
     const flicker = Math.sin(performance.now() * 0.014) * 1.2;
     const flameY = anchor.y - 10 + flicker * 0.35;
+    const safeStrength = Math.max(0, Math.min(1, strength));
+    const brightnessFactor = 0.35 + safeStrength * 0.65;
 
     context.save();
 
     // Keep the glow tiny so the candle reads as an object, not a spotlight.
     const glow = context.createRadialGradient(anchor.x, flameY, 1, anchor.x, flameY, 12);
-    glow.addColorStop(0, "rgba(255, 226, 150, 0.26)");
-    glow.addColorStop(0.55, "rgba(255, 184, 90, 0.12)");
+    glow.addColorStop(0, `rgba(255, 226, 150, ${(0.26 * brightnessFactor).toFixed(3)})`);
+    glow.addColorStop(0.55, `rgba(255, 184, 90, ${(0.12 * brightnessFactor).toFixed(3)})`);
     glow.addColorStop(1, "rgba(255, 184, 90, 0)");
     context.fillStyle = glow;
     context.beginPath();
@@ -247,12 +249,12 @@
 
     context.fillStyle = "#ffcd68";
     context.beginPath();
-    context.ellipse(anchor.x, flameY, 3.1, 4.6, 0, 0, Math.PI * 2);
+    context.ellipse(anchor.x, flameY, 3.1, 4.6 * brightnessFactor, 0, 0, Math.PI * 2);
     context.fill();
 
     context.fillStyle = "#fff4bf";
     context.beginPath();
-    context.ellipse(anchor.x, flameY - 0.6, 1.4, 2.2, 0, 0, Math.PI * 2);
+    context.ellipse(anchor.x, flameY - 0.6, 1.4, 2.2 * brightnessFactor, 0, 0, Math.PI * 2);
     context.fill();
 
     context.restore();
@@ -417,7 +419,7 @@
     }
 
     if (options.showCandle) {
-      drawCarriedCandle(context, position, size, direction);
+      drawCarriedCandle(context, position, size, direction, options.candleStrength);
     }
   }
 

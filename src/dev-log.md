@@ -1,3 +1,19 @@
+## 2026-04-16 threat pressure ladder
+
+Added escalating pressure mechanics tied to the HUD threat level so each step adds a new way to rush the player.
+
+- `src/core/gameState.js`
+  - Added `systems.candleFuel` so candle strength can fade over time.
+
+- `src/core/game.js`
+  - Threat level 1+: battery now drains slowly over time (and drains faster as threat climbs).
+  - Threat level 2+: candle fuel burns down during blackout; the light cone dims/shrinks and the candle can sputter out.
+  - Threat level 3+: night timer accelerates so time runs faster at higher threat.
+  - HUD phone status now reports candle fade percent while it is burning down.
+
+- `src/renderers/playerRenderer.js`
+  - Candle sprite now visually fades as fuel drops.
+
 ## 2026-04-04 menu about panel + story music flow pass
 
 Polished the menu/story presentation by speeding up the intro scroll slightly, moving the front-door interactable to the updated door art, and wiring menu plus story music through the shared audio manager.
