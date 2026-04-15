@@ -1,4 +1,4 @@
-﻿{
+{
   "name": "shesh-prohor",
   "private": true,
   "version": "0.1.0",
@@ -7,5 +7,3 @@
     "start": "python -m http.server 8000"
   }
 }
-
-
