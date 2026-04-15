@@ -59,6 +59,24 @@
           <p class="level-body" id="level-body">Press Enter or Space to begin.</p>
         </div>
       </div>
+      <div class="map-overlay" id="map-overlay" aria-live="polite" aria-hidden="true">
+        <div class="map-overlay-card">
+          <div class="map-overlay-head">
+            <div>
+              <div class="map-overlay-kicker">Apartment Map</div>
+              <h2 class="map-overlay-title">Current Floor View</h2>
+            </div>
+            <div class="map-overlay-help">Press M or Esc to close</div>
+          </div>
+          <div class="map-overlay-visual" role="img" aria-label="Apartment map with current location highlight">
+            <div class="map-marker" data-room="kitchen"></div>
+            <div class="map-marker" data-room="living-room"></div>
+            <div class="map-marker" data-room="children-room"></div>
+            <div class="map-marker" data-room="basement"></div>
+          </div>
+          <p class="map-overlay-location" id="map-current-location">Current Location: Living Room</p>
+        </div>
+      </div>
       <div class="dialogue-box" id="dialogue-box" aria-live="polite">
         <div class="dialogue-kicker" id="dialogue-kicker">Event</div>
         <h2 class="dialogue-title" id="dialogue-title">Dialogue</h2>
