@@ -92,17 +92,13 @@
       : {
         id: "normal",
         label: "Normal",
-        nightDurationSeconds: 3 * 60,
-        batteryDrainMultiplier: 1,
-        threatGainMultiplier: 1,
-        choiceTimerMultiplier: 1,
-        interactionRadiusMultiplier: 1,
+        timerMultiplier: 1,
         scoreMultiplier: 1,
       };
     const state = window.GameState.createGameState(canvas, {
       difficultyId: difficulty.id,
       difficultyLabel: difficulty.label,
-      nightDurationSeconds: difficulty.nightDurationSeconds,
+      nightDurationSeconds: Math.round(3 * 60 * (difficulty.timerMultiplier || 1)),
     });
     const audio = window.AudioManager || null;
     const ui = getUiElements();
@@ -309,16 +305,15 @@
     }
 
     function addThreatDelta(amount) {
-      setThreat(state.systems.threat + amount * difficulty.threatGainMultiplier);
+      setThreat(state.systems.threat + amount);
     }
 
-    function addBatteryDelta(amount, useDifficultyScaling = true) {
-      const delta = useDifficultyScaling ? amount * difficulty.batteryDrainMultiplier : amount;
-      setBattery(state.systems.battery + delta);
+    function addBatteryDelta(amount) {
+      setBattery(state.systems.battery + amount);
     }
 
     function addScore(basePoints) {
-      if (!basePoints) {
+      if (!basePoints || basePoints <= 0) {
         return 0;
       }
 
@@ -739,7 +734,7 @@
       };
       state.ui.selectedChoiceIndex = 0;
       startTimer(
-        Math.round((config.timerSeconds || 0) * difficulty.choiceTimerMultiplier),
+        Math.round((config.timerSeconds || 0) * (difficulty.timerMultiplier || 1)),
         () => {
           if (config.choices && config.choices.length) {
             resolveDialogueChoice(config.choices[config.choices.length - 1].id);
@@ -929,7 +924,7 @@
         const targetY = state.room.bounds.height * item.y;
         const maxDistance = minDimension * item.radius;
         return Math.hypot(playerCenter.x - targetX, playerCenter.y - targetY)
-          <= maxDistance * difficulty.interactionRadiusMultiplier;
+          <= maxDistance;
       }) || null;
     }
 

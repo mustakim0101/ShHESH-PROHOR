@@ -43,9 +43,9 @@
     milestones: {
       event03Lit: 160,
       goodEnding: 520,
-      badEnding: -180,
-      batteryDeath: -120,
-      timeout: -160,
+      badEnding: 0,
+      batteryDeath: 0,
+      timeout: 0,
     },
     bonuses: {
       remainingBatteryPerPoint: 3,
