@@ -85,11 +85,30 @@
     const sprite = { ...window.PlayerConfig.sprite };
     const input = window.InputController.createInputController(window);
     const roomRegistry = window.RoomRegistry;
-    const state = window.GameState.createGameState(canvas);
+    const difficultyConfig = window.DifficultyConfig || null;
+    const scoreConfig = window.ScoreConfig || { tasks: {}, choices: {}, milestones: {}, bonuses: {} };
+    const difficulty = difficultyConfig
+      ? difficultyConfig.getSelectedDifficulty()
+      : {
+        id: "normal",
+        label: "Normal",
+        nightDurationSeconds: 3 * 60,
+        batteryDrainMultiplier: 1,
+        threatGainMultiplier: 1,
+        choiceTimerMultiplier: 1,
+        interactionRadiusMultiplier: 1,
+        scoreMultiplier: 1,
+      };
+    const state = window.GameState.createGameState(canvas, {
+      difficultyId: difficulty.id,
+      difficultyLabel: difficulty.label,
+      nightDurationSeconds: difficulty.nightDurationSeconds,
+    });
     const audio = window.AudioManager || null;
     const ui = getUiElements();
     let currentGate = null;
     let gateCooldown = 0;
+    let endingScoreApplied = false;
 
     // Flip this in the browser console with:
     // window.SheshProhorDebug.showCollisionOverlay = true
@@ -103,7 +122,9 @@
         threatValue: document.getElementById("hud-threat-value"),
         batteryValue: document.getElementById("hud-battery-value"),
         timerValue: document.getElementById("hud-timer-value"),
+        scoreValue: document.getElementById("hud-score-value"),
         taskList: document.getElementById("task-list"),
+        difficultyStatus: document.getElementById("difficulty-status"),
         interactionHint: document.getElementById("interaction-hint"),
         phoneStatus: document.getElementById("phone-status"),
         dialogueBox: document.getElementById("dialogue-box"),
@@ -287,6 +308,59 @@
       state.systems.battery = Math.max(0, Math.min(100, value));
     }
 
+    function addThreatDelta(amount) {
+      setThreat(state.systems.threat + amount * difficulty.threatGainMultiplier);
+    }
+
+    function addBatteryDelta(amount, useDifficultyScaling = true) {
+      const delta = useDifficultyScaling ? amount * difficulty.batteryDrainMultiplier : amount;
+      setBattery(state.systems.battery + delta);
+    }
+
+    function addScore(basePoints) {
+      if (!basePoints) {
+        return 0;
+      }
+
+      const adjustedPoints = Math.round(basePoints * difficulty.scoreMultiplier);
+      state.systems.score = Math.max(0, state.systems.score + adjustedPoints);
+      return adjustedPoints;
+    }
+
+    function awardTaskScore(taskId) {
+      addScore(scoreConfig.tasks && scoreConfig.tasks[taskId]);
+    }
+
+    function awardChoiceScore(eventId, choiceId) {
+      const eventScores = scoreConfig.choices && scoreConfig.choices[eventId];
+      if (!eventScores) {
+        return;
+      }
+
+      addScore(eventScores[choiceId]);
+    }
+
+    function applyEndingScore(type) {
+      if (endingScoreApplied) {
+        return;
+      }
+
+      endingScoreApplied = true;
+
+      if (type === "good") {
+        addScore(scoreConfig.milestones.goodEnding || 0);
+        addScore(Math.round(state.systems.battery) * (scoreConfig.bonuses.remainingBatteryPerPoint || 0));
+        addScore(Math.round(state.systems.night.remaining) * (scoreConfig.bonuses.remainingSecondsPerPoint || 0));
+        return;
+      }
+
+      addScore(scoreConfig.milestones[type] || scoreConfig.milestones.badEnding || 0);
+    }
+
+    function getRunSummaryText() {
+      return `Final score: ${state.systems.score}. Difficulty: ${state.systems.difficulty.label}.`;
+    }
+
     function setTaskQueue(items) {
       state.ui.taskQueue = items.map((item) => ({ ...item }));
       renderTaskQueue();
@@ -302,6 +376,7 @@
         return { ...task, completed: true };
       });
       if (changed) {
+        awardTaskScore(taskId);
         renderTaskQueue();
       }
       return changed;
@@ -618,6 +693,12 @@
           ? "--"
           : formatTime(state.systems.night.remaining);
       }
+      if (ui.scoreValue) {
+        ui.scoreValue.textContent = String(state.systems.score);
+      }
+      if (ui.difficultyStatus) {
+        ui.difficultyStatus.textContent = `Mode: ${state.systems.difficulty.label}`;
+      }
       setPhoneStatus();
     }
 
@@ -658,7 +739,7 @@
       };
       state.ui.selectedChoiceIndex = 0;
       startTimer(
-        config.timerSeconds || 0,
+        Math.round((config.timerSeconds || 0) * difficulty.choiceTimerMultiplier),
         () => {
           if (config.choices && config.choices.length) {
             resolveDialogueChoice(config.choices[config.choices.length - 1].id);
@@ -783,6 +864,8 @@
       if (state.systems.gameOver) {
         return;
       }
+      const endingPenaltyType = title === "Battery Dead" ? "batteryDeath" : "timeout";
+      applyEndingScore(endingPenaltyType);
       state.systems.gameOver = true;
       state.systems.gameOverReason = title;
       hideLevelOverlay();
@@ -795,7 +878,7 @@
       state.ui.currentDialogue = {
         kicker: title,
         title: "GAME OVER",
-        body,
+        body: `${body} ${getRunSummaryText()}`,
         choices: [],
       };
       document.body.classList.remove("end-safe", "end-almost");
@@ -845,7 +928,8 @@
         const targetX = state.room.bounds.width * item.x;
         const targetY = state.room.bounds.height * item.y;
         const maxDistance = minDimension * item.radius;
-        return Math.hypot(playerCenter.x - targetX, playerCenter.y - targetY) <= maxDistance;
+        return Math.hypot(playerCenter.x - targetX, playerCenter.y - targetY)
+          <= maxDistance * difficulty.interactionRadiusMultiplier;
       }) || null;
     }
 
@@ -984,6 +1068,7 @@
 
     function beginMorningEnding() {
       state.systems.familySafe = true;
+      applyEndingScore("good");
       clearTimer();
       state.events.activeEventId = "event06-complete";
       setTaskQueue([]);
@@ -991,7 +1076,7 @@
       openDialogue({
         kicker: "Family Safe",
         title: "WAIT A LITTLE LONGER",
-        body: "Stay close. Stay quiet. Morning is almost here.",
+        body: `Stay close. Stay quiet. Morning is almost here. ${getRunSummaryText()}`,
         centered: true,
         choices: [],
         timerSeconds: 0,
@@ -1005,7 +1090,10 @@
       state.timers.morningTimeoutId = window.setTimeout(() => {
         state.timers.morningTimeoutId = 0;
         closeDialogue();
-        showLevelOverlay(LEVEL_COPY.level6Complete, returnToMainMenu);
+        showLevelOverlay({
+          ...LEVEL_COPY.level6Complete,
+          body: `${LEVEL_COPY.level6Complete.body} ${getRunSummaryText()}`,
+        }, returnToMainMenu);
         setInteractionHint("Morning came. You kept the family safe from the strangers outside.");
         if (state.timers.menuRedirectTimeoutId) {
           window.clearTimeout(state.timers.menuRedirectTimeoutId);
@@ -1041,14 +1129,15 @@
       if (activeEventId === "event01") {
         state.events.completed.event01 = true;
         state.events.choiceHistory.event01 = choiceId;
+        awardChoiceScore("event01", choiceId);
         let event01Outcome = getOutcomeText("event01", "tvChosen", "You decide to trust the TV.");
 
         if (choiceId === "trustRadio") {
-          setThreat(state.systems.threat + 0.5);
+          addThreatDelta(0.5);
           event01Outcome = getOutcomeText("event01", "radioChosen", "You decide to trust the radio.");
         } else if (choiceId === "trustPhone") {
-          setThreat(state.systems.threat + 1);
-          setBattery(state.systems.battery - 2);
+          addThreatDelta(1);
+          addBatteryDelta(-2);
           event01Outcome = getOutcomeText("event01", "phoneChosen", "You decide to trust the phone.");
         } else {
           setThreat(2);
@@ -1077,17 +1166,18 @@
       if (activeEventId === "event02") {
         state.events.completed.event02 = true;
         state.events.choiceHistory.event02 = choiceId;
+        awardChoiceScore("event02", choiceId);
         completeTask("goToChild");
         completeTask("answerChild");
         let event02Outcome = getOutcomeText("event02", "childComforted", "The child steps closer. The counting stops.");
 
         if (choiceId === "reassure") {
-          setThreat(state.systems.threat + 0.5);
+          addThreatDelta(0.5);
         } else if (choiceId === "deflect") {
-          setThreat(state.systems.threat + 1);
+          addThreatDelta(1);
           event02Outcome = getOutcomeText("event02", "childUnsettled", "The child nods, but does not move.");
         } else {
-          setThreat(state.systems.threat + 1.5);
+          addThreatDelta(1.5);
           event02Outcome = getOutcomeText("event02", "childWithdraws", "The child looks at you for a moment, then looks away.");
         }
         showLevelOverlay(LEVEL_COPY.level2Complete, () => {
@@ -1102,14 +1192,15 @@
       if (activeEventId === "event04") {
         state.events.completed.event04 = true;
         state.events.choiceHistory.event04 = choiceId;
+        awardChoiceScore("event04", choiceId);
         completeTask("hideOrRespond");
         let event04Outcome = getOutcomeText("event04", "doorStaysClosed", "You stay still. The silence stretches.");
 
         if (choiceId === "speakThroughDoor") {
-          setThreat(state.systems.threat + 1);
+          addThreatDelta(1);
           event04Outcome = getOutcomeText("event04", "presenceRevealed", "Your voice gives the apartment away.");
         } else if (choiceId === "moveAway") {
-          setThreat(Math.max(1, state.systems.threat - 0.5));
+          addThreatDelta(-0.5);
           event04Outcome = getOutcomeText("event04", "childRedirected", "You turn from the door and go to the older child first.");
         }
         showLevelOverlay(LEVEL_COPY.level4Complete, () => {
@@ -1124,6 +1215,7 @@
       if (activeEventId === "event05") {
         state.events.completed.event05 = true;
         state.events.choiceHistory.event05 = choiceId;
+        awardChoiceScore("event05", choiceId);
         completeTask(TASK_IDS.checkYoungerChildAgain);
         completeTask(TASK_IDS.stayWithFamily);
         showLevelOverlay(LEVEL_COPY.level5Complete, () => {
@@ -1232,6 +1324,7 @@
             } else if (!state.systems.candleLit) {
               state.systems.candleLit = true;
               completeTask("lightCandle");
+              addScore(scoreConfig.milestones.event03Lit || 0);
               state.events.completed.event03 = true;
               showLevelOverlay(LEVEL_COPY.level3Complete, () => {
                 showLevelOverlay(LEVEL_COPY.level4Start, () => {
@@ -1325,7 +1418,7 @@
 
     function updateBattery(dt) {
       if (!state.systems.gameOver && !state.systems.familySafe && state.systems.blackout && !state.systems.candleLit) {
-        setBattery(state.systems.battery - dt * BATTERY_DRAIN_PER_SECOND);
+        addBatteryDelta(-dt * BATTERY_DRAIN_PER_SECOND);
       }
     }
 
@@ -1518,6 +1611,7 @@
         state.player.frame,
         state.player.position,
         {
+          carryChildren: state.events.activeEventId === "event06" && state.room.currentRoomId === "basement",
           showCandle: state.systems.candleLit,
         },
       );

@@ -1,5 +1,9 @@
 (function () {
-  function createGameState(canvas) {
+  function createGameState(canvas, options = {}) {
+    const nightDuration = options.nightDurationSeconds || 3 * 60;
+    const difficultyId = options.difficultyId || "normal";
+    const difficultyLabel = options.difficultyLabel || "Normal";
+
     return {
       room: {
         currentRoomId: "living-room",
@@ -24,16 +28,21 @@
         frameRequestId: 0,
       },
       systems: {
+        difficulty: {
+          id: difficultyId,
+          label: difficultyLabel,
+        },
         threat: 1,
         battery: 40,
+        score: 0,
         candleLit: false,
         blackout: false,
         gameOver: false,
         familySafe: false,
         gameOverReason: "",
         night: {
-          duration: 3 * 60,
-          remaining: 3 * 60,
+          duration: nightDuration,
+          remaining: nightDuration,
         },
       },
       inventory: {

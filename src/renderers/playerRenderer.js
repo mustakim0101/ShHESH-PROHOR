@@ -224,6 +224,60 @@
     context.restore();
   }
 
+  function drawCarriedChildren(context, position, size, direction) {
+    const pulse = Math.sin(performance.now() * 0.008) * 0.5 + 0.5;
+    const facingLeft = direction === 1;
+    const facingRight = direction === 2;
+    const shoulderY = position.y + size.height * 0.34;
+    const centerX = position.x + size.width * 0.5;
+    const frontChildX = facingLeft
+      ? position.x + size.width * 0.18
+      : facingRight
+        ? position.x + size.width * 0.82
+        : centerX + size.width * 0.18;
+    const backChildX = facingLeft
+      ? position.x + size.width * 0.72
+      : facingRight
+        ? position.x + size.width * 0.28
+        : centerX - size.width * 0.18;
+
+    context.save();
+
+    const wrapGlow = context.createRadialGradient(
+      centerX,
+      shoulderY + size.height * 0.1,
+      6,
+      centerX,
+      shoulderY + size.height * 0.1,
+      size.width * 0.52,
+    );
+    wrapGlow.addColorStop(0, `rgba(255, 231, 177, ${0.12 + pulse * 0.05})`);
+    wrapGlow.addColorStop(1, "rgba(255, 231, 177, 0)");
+    context.fillStyle = wrapGlow;
+    context.beginPath();
+    context.ellipse(centerX, shoulderY + size.height * 0.08, size.width * 0.52, size.height * 0.28, 0, 0, Math.PI * 2);
+    context.fill();
+
+    context.fillStyle = "#d8c4d2";
+    context.beginPath();
+    context.arc(frontChildX, shoulderY, size.width * 0.09, 0, Math.PI * 2);
+    context.arc(backChildX, shoulderY + size.height * 0.02, size.width * 0.085, 0, Math.PI * 2);
+    context.fill();
+
+    context.fillStyle = "#f0dfe9";
+    context.beginPath();
+    context.roundRect(frontChildX - size.width * 0.12, shoulderY + size.height * 0.02, size.width * 0.24, size.height * 0.2, 8);
+    context.roundRect(backChildX - size.width * 0.11, shoulderY + size.height * 0.05, size.width * 0.22, size.height * 0.18, 8);
+    context.fill();
+
+    context.fillStyle = "rgba(106, 82, 116, 0.45)";
+    context.beginPath();
+    context.roundRect(centerX - size.width * 0.32, shoulderY + size.height * 0.06, size.width * 0.64, size.height * 0.08, 10);
+    context.fill();
+
+    context.restore();
+  }
+
   function drawPlayer(
     context,
     spriteImage,
@@ -253,6 +307,10 @@
       size.width,
       size.height,
     );
+
+    if (options.carryChildren) {
+      drawCarriedChildren(context, position, size, direction);
+    }
 
     if (options.showCandle) {
       drawCarriedCandle(context, position, size, direction);

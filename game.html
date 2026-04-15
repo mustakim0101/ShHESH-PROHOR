@@ -30,6 +30,10 @@
             <span class="meter-label">Timer</span>
             <span class="meter-value" id="hud-timer-value">--</span>
           </div>
+          <div class="meter-card">
+            <span class="meter-label">Score</span>
+            <span class="meter-value" id="hud-score-value">0</span>
+          </div>
         </div>
       </div>
 
@@ -39,6 +43,7 @@
           <ul class="task-list" id="task-list"></ul>
         </div>
         <div class="system-panel">
+          <div class="system-line" id="difficulty-status">Mode: Normal</div>
           <div class="system-line" id="interaction-hint">Move close to an object and press SPACE.</div>
           <div class="system-line" id="phone-status">Phone battery matters during the night.</div>
         </div>
@@ -92,6 +97,8 @@
   </section>
 
   <script src="src/config/playerConfig.js"></script>
+  <script src="src/config/difficultyConfig.js"></script>
+  <script src="src/config/scoreConfig.js"></script>
   <script src="src/controllers/inputController.js"></script>
   <script src="src/controllers/movementController.js"></script>
   <script src="src/renderers/playerRenderer.js"></script>

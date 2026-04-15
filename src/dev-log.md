@@ -324,6 +324,17 @@ Updated room transitions to match the visible stairs in the current background a
     - target: `living-room`
     - spawn in living room: `x 0.78`, `y 0.66`
 
+## 2026-04-15 realistic apartment expansion plan
+
+Added a concrete realistic apartment expansion design so the project has a room architecture blueprint before more backgrounds and gates are implemented.
+
+- `src/content/realistic_apartment_expansion.md`
+  - Added a three-level realistic layout:
+    - main floor public spaces
+    - upper floor private spaces
+    - lower floor basement/service spaces
+  - Defined new recommended rooms, gate connections, story use, collision rules, build order, and file plan.
+
 ## 2026-04-04 stair tightening + audio hookup
 
 Adjusted the upper-floor and basement transitions so the player has to use the visible stair paths instead of clipping through the side edges or stair rail area. Also connected the existing repo audio manifest to the actual runtime.

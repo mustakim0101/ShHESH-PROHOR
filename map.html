@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shesh Prohor - Apartment Map</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Crimson+Pro:ital,wght@0,400;1,400&family=JetBrains+Mono:wght@300;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="home home--menu">
+    <section class="menu-shell menu-shell--controls" aria-label="Apartment map">
+      <div class="menu-topbar">
+        <a class="menu-button menu-button--ghost" href="index.html">Back To Menu</a>
+        <a class="menu-button menu-button--primary" href="game.html">Start Game</a>
+      </div>
+
+      <section class="menu-panel menu-panel--about-head">
+        <div class="menu-section-kicker">Apartment Map</div>
+        <h1 class="home-title menu-title menu-title--small">Home Layout Overview</h1>
+        <p class="menu-lead menu-lead--small">A realistic multi-level home layout designed for navigation, tension, and future room expansion.</p>
+      </section>
+
+      <section class="menu-panel" aria-label="Apartment floor plans">
+        <figure class="apartment-plan-figure">
+          <img
+            class="apartment-plan-image"
+            src="assets/images/map-concepts/apartment-plan-topdown.svg"
+            alt="Top-down apartment floor plan showing balcony, dining, living room, kitchen, entry hall, bathroom, study, storage, upstairs rooms, and basement zones."
+          />
+        </figure>
+
+        <div class="floorplan-grid">
+          <article class="floorplan-card">
+            <div class="plan-level">Main Floor Plan</div>
+            <div class="floorplan floorplan--main">
+              <div class="floor-tile floor-tile--stairs-main">Stairs Up</div>
+              <div class="floor-tile floor-tile--balcony">Balcony</div>
+              <div class="floor-tile floor-tile--dining">Dining</div>
+              <div class="floor-tile floor-tile--living floor-tile--anchor floor-tile--implemented">Living Room</div>
+              <div class="floor-tile floor-tile--entry">Entry Hall</div>
+              <div class="floor-tile floor-tile--bath">Bathroom</div>
+              <div class="floor-tile floor-tile--kitchen floor-tile--implemented">Kitchen</div>
+              <div class="floor-tile floor-tile--study">Study</div>
+              <div class="floor-tile floor-tile--storage">Storage</div>
+            </div>
+          </article>
+
+          <article class="floorplan-card">
+            <div class="plan-level">Upper Floor Plan</div>
+            <div class="floorplan floorplan--upper">
+              <div class="floor-tile floor-tile--parents">Parents' Room</div>
+              <div class="floor-tile floor-tile--upperhall floor-tile--anchor">Upper Hall</div>
+              <div class="floor-tile floor-tile--children floor-tile--implemented">Children's Room</div>
+              <div class="floor-tile floor-tile--prayer">Prayer Nook</div>
+              <div class="floor-tile floor-tile--landing">Stair Landing</div>
+            </div>
+          </article>
+
+          <article class="floorplan-card">
+            <div class="plan-level">Basement Plan</div>
+            <div class="floorplan floorplan--lower">
+              <div class="floor-tile floor-tile--stairs">Basement Stairs</div>
+              <div class="floor-tile floor-tile--utility floor-tile--anchor floor-tile--implemented">Utility Area</div>
+              <div class="floor-tile floor-tile--safe">Safe Corner</div>
+              <div class="floor-tile floor-tile--store">Store Room</div>
+            </div>
+          </article>
+        </div>
+
+        <div class="map-legend" aria-label="Floor plan legend">
+          <div class="map-legend-item"><span class="map-legend-swatch map-legend-swatch--implemented"></span>Implemented in game</div>
+          <div class="map-legend-item"><span class="map-legend-swatch map-legend-swatch--anchor"></span>Primary route / key room</div>
+          <div class="map-legend-item"><span class="map-legend-swatch"></span>Planned realistic expansion</div>
+        </div>
+      </section>
+
+      <section class="menu-panel">
+        <div class="menu-section-kicker">Room Visuals</div>
+        <h2 class="menu-section-title">Current playable spaces and planned room concepts</h2>
+        <p class="menu-panel-copy">Implemented rooms use the actual in-game backgrounds below. Planned spaces now include visual concept cards so the apartment reads like one complete home instead of disconnected labels.</p>
+        <div class="map-board">
+          <article class="floor-board">
+            <div class="plan-level">Main Floor</div>
+            <div class="map-layout map-layout--main">
+              <div class="map-room">Balcony</div>
+              <article class="map-room map-room--visual map-room--concept">
+                <div class="map-room-media map-room-media--concept" style="background-image: linear-gradient(180deg, rgba(14, 11, 20, 0.04), rgba(14, 11, 20, 0.4)), url('assets/images/map-concepts/dining-room.svg');"></div>
+                <div class="map-room-name">Dining Room</div>
+                <div class="map-room-note">Planned concept</div>
+              </article>
+              <article class="map-room map-room--anchor map-room--visual">
+                <div class="map-room-media" style="background-image: linear-gradient(180deg, rgba(14, 11, 20, 0.08), rgba(14, 11, 20, 0.52)), url('assets/images/backgrounds/middlefloor.png');"></div>
+                <div class="map-room-name">Living Room</div>
+                <div class="map-room-note">Playable room</div>
+              </article>
+              <article class="map-room map-room--visual">
+                <div class="map-room-media" style="background-image: linear-gradient(180deg, rgba(14, 11, 20, 0.08), rgba(14, 11, 20, 0.52)), url('assets/images/backgrounds/someroom.jpg');"></div>
+                <div class="map-room-name">Kitchen</div>
+                <div class="map-room-note">Playable room</div>
+              </article>
+              <article class="map-room map-room--visual map-room--concept">
+                <div class="map-room-media map-room-media--concept" style="background-image: linear-gradient(180deg, rgba(14, 11, 20, 0.04), rgba(14, 11, 20, 0.4)), url('assets/images/map-concepts/entry-hall.svg');"></div>
+                <div class="map-room-name">Entry Hall</div>
+                <div class="map-room-note">Planned concept</div>
+              </article>
+              <article class="map-room map-room--visual map-room--concept">
+                <div class="map-room-media map-room-media--concept" style="background-image: linear-gradient(180deg, rgba(14, 11, 20, 0.04), rgba(14, 11, 20, 0.4)), url('assets/images/map-concepts/bathroom.svg');"></div>
+                <div class="map-room-name">Bathroom</div>
+                <div class="map-room-note">Planned concept</div>
+              </article>
+              <article class="map-room map-room--visual map-room--concept">
+                <div class="map-room-media map-room-media--concept" style="background-image: linear-gradient(180deg, rgba(14, 11, 20, 0.04), rgba(14, 11, 20, 0.4)), url('assets/images/map-concepts/study.svg');"></div>
+                <div class="map-room-name">Study</div>
+                <div class="map-room-note">Planned concept</div>
+              </article>
+              <article class="map-room map-room--visual map-room--concept">
+                <div class="map-room-media map-room-media--concept" style="background-image: linear-gradient(180deg, rgba(14, 11, 20, 0.04), rgba(14, 11, 20, 0.4)), url('assets/images/map-concepts/storage-room.svg');"></div>
+                <div class="map-room-name">Storage</div>
+                <div class="map-room-note">Planned concept</div>
+              </article>
+            </div>
+          </article>
+
+          <article class="floor-board">
+            <div class="plan-level">Upper Floor</div>
+            <div class="map-layout map-layout--upper">
+              <article class="map-room map-room--visual map-room--concept">
+                <div class="map-room-media map-room-media--concept" style="background-image: linear-gradient(180deg, rgba(14, 11, 20, 0.04), rgba(14, 11, 20, 0.4)), url('assets/images/map-concepts/parents-room.svg');"></div>
+                <div class="map-room-name">Parents' Room</div>
+                <div class="map-room-note">Planned concept</div>
+              </article>
+              <div class="map-room map-room--anchor">Upper Hall</div>
+              <article class="map-room map-room--visual">
+                <div class="map-room-media" style="background-image: linear-gradient(180deg, rgba(14, 11, 20, 0.08), rgba(14, 11, 20, 0.52)), url('assets/images/backgrounds/topFloor.jpg');"></div>
+                <div class="map-room-name">Children's Room</div>
+                <div class="map-room-note">Playable room</div>
+              </article>
+              <article class="map-room map-room--visual map-room--concept">
+                <div class="map-room-media map-room-media--concept" style="background-image: linear-gradient(180deg, rgba(14, 11, 20, 0.04), rgba(14, 11, 20, 0.4)), url('assets/images/map-concepts/prayer-nook.svg');"></div>
+                <div class="map-room-name">Prayer Nook</div>
+                <div class="map-room-note">Planned concept</div>
+              </article>
+            </div>
+          </article>
+
+          <article class="floor-board">
+            <div class="plan-level">Lower Floor</div>
+            <div class="map-layout map-layout--lower">
+              <div class="map-room">Basement Stairs</div>
+              <article class="map-room map-room--anchor map-room--visual">
+                <div class="map-room-media" style="background-image: linear-gradient(180deg, rgba(14, 11, 20, 0.08), rgba(14, 11, 20, 0.52)), url('assets/images/backgrounds/basement.jpg');"></div>
+                <div class="map-room-name">Utility Area</div>
+                <div class="map-room-note">Basement playable zone</div>
+              </article>
+              <article class="map-room map-room--visual map-room--concept">
+                <div class="map-room-media map-room-media--concept" style="background-image: linear-gradient(180deg, rgba(14, 11, 20, 0.04), rgba(14, 11, 20, 0.4)), url('assets/images/map-concepts/safe-corner.svg');"></div>
+                <div class="map-room-name">Safe Corner</div>
+                <div class="map-room-note">Planned concept</div>
+              </article>
+              <article class="map-room map-room--visual map-room--concept">
+                <div class="map-room-media map-room-media--concept" style="background-image: linear-gradient(180deg, rgba(14, 11, 20, 0.04), rgba(14, 11, 20, 0.4)), url('assets/images/map-concepts/store-room.svg');"></div>
+                <div class="map-room-name">Store Room</div>
+                <div class="map-room-note">Planned concept</div>
+              </article>
+            </div>
+          </article>
+        </div>
+      </section>
+    </section>
+  </main>
+</body>
+</html>
