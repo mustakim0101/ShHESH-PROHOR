@@ -2,7 +2,7 @@
   window.RoomRegistry.registerRoom({
     id: "basement",
     name: "Basement",
-    background: "assets/images/backgrounds/basement.jpg",
+    background: "assets/images/backgrounds/new_basement.jpg",
     walkableZones: [
       // Main visible basement floor.
       {
