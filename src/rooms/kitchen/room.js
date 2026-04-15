@@ -9,10 +9,10 @@
         x: { start: 0.11, end: 0.86 },
         y: { start: 0.58, end: 0.88 },
       },
-      // Thin front edge under the raised tile section so counters stay reachable from below.
+      // Thin front edge under the raised tile section so upper-center objects stay reachable from below.
       {
         x: { start: 0.21, end: 0.78 },
-        y: { start: 0.52, end: 0.58 },
+        y: { start: 0.5, end: 0.58 },
       },
       // Narrow right-side access where the phone sits, without spilling into the black edge.
       {
@@ -42,14 +42,16 @@
         y: { start: 0.04, end: 0.33 },
       },
       // Front railing edge of the raised counter section.
+      // Keep this shallow so it does not erase the narrow access lip under the radio.
       {
         x: { start: 0.18, end: 0.8 },
-        y: { start: 0.5, end: 0.56 },
+        y: { start: 0.5, end: 0.52 },
       },
       // Carry the middle raised section upward so the player stays on the lower floor line.
+      // Stop a bit higher to preserve the reachable front lip.
       {
         x: { start: 0.23, end: 0.79 },
-        y: { start: 0.33, end: 0.52 },
+        y: { start: 0.33, end: 0.49 },
       },
       // Keep the left upper wall alcove non-walkable.
       {
