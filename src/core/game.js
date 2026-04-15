@@ -1,5 +1,11 @@
 (function () {
   const ROOM_IDS = ["living-room", "kitchen", "children-room", "basement"];
+  const ROOM_LABELS = {
+    "living-room": "Living Room",
+    kitchen: "Kitchen",
+    "children-room": "Bedroom",
+    basement: "Basement",
+  };
   const BATTERY_DRAIN_PER_SECOND = 40 / (2.5 * 60);
   const BASE_BATTERY_DRAIN_PER_SECOND = 40 / (7 * 60);
   const CANDLE_BURN_SECONDS_BY_THREAT = {
@@ -139,6 +145,9 @@
         levelKicker: document.getElementById("level-kicker"),
         levelTitle: document.getElementById("level-title"),
         levelBody: document.getElementById("level-body"),
+        mapOverlay: document.getElementById("map-overlay"),
+        mapCurrentLocation: document.getElementById("map-current-location"),
+        mapMarkers: document.querySelectorAll(".map-marker"),
       };
     }
 
@@ -448,6 +457,10 @@
       return room ? room.name : roomId;
     }
 
+    function getRoomLabel(roomId) {
+      return ROOM_LABELS[roomId] || getRoomName(roomId);
+    }
+
     function isValidSpawnPosition(position, room, spriteSize) {
       return window.MovementController.isWalkablePosition(
         position,
@@ -726,6 +739,7 @@
         ui.difficultyStatus.textContent = `Mode: ${state.systems.difficulty.label}`;
       }
       setPhoneStatus();
+      renderMapOverlayState();
     }
 
     function updateAtmosphereLighting() {
@@ -827,6 +841,61 @@
       return true;
     }
 
+    function renderMapOverlayState() {
+      if (ui.mapCurrentLocation) {
+        ui.mapCurrentLocation.textContent = `Current Location: ${getRoomLabel(state.room.currentRoomId)}`;
+      }
+
+      if (ui.mapMarkers) {
+        ui.mapMarkers.forEach((marker) => {
+          marker.classList.toggle("is-active", marker.dataset.room === state.room.currentRoomId);
+        });
+      }
+    }
+
+    function showMapOverlay() {
+      if (!ui.mapOverlay) {
+        return;
+      }
+
+      state.ui.mapOverlay = true;
+      ui.mapOverlay.classList.add("is-active");
+      ui.mapOverlay.setAttribute("aria-hidden", "false");
+      renderMapOverlayState();
+    }
+
+    function hideMapOverlay() {
+      if (!ui.mapOverlay) {
+        return;
+      }
+
+      state.ui.mapOverlay = false;
+      ui.mapOverlay.classList.remove("is-active");
+      ui.mapOverlay.setAttribute("aria-hidden", "true");
+    }
+
+    function toggleMapOverlay() {
+      if (state.ui.mapOverlay) {
+        hideMapOverlay();
+      } else {
+        showMapOverlay();
+      }
+    }
+
+    function handleMapOverlayInput() {
+      if (state.systems.gameOver && !state.ui.mapOverlay) {
+        return;
+      }
+
+      if (input.consumePressed("KeyM")) {
+        toggleMapOverlay();
+      }
+
+      if (state.ui.mapOverlay && input.consumePressed("Escape")) {
+        hideMapOverlay();
+      }
+    }
+
     function renderDialogue() {
       if (!ui.dialogueBox) {
         return;
@@ -897,6 +966,7 @@
       state.systems.gameOver = true;
       state.systems.gameOverReason = title;
       hideLevelOverlay();
+      hideMapOverlay();
       if (audio && typeof audio.stopAll === "function") {
         audio.stopAll();
       }
@@ -1593,7 +1663,7 @@
 
     function handleChoiceInput() {
       const dialogue = state.ui.currentDialogue;
-      if (!dialogue || !dialogue.choices.length || state.systems.gameOver) {
+      if (!dialogue || !dialogue.choices.length || state.systems.gameOver || state.ui.mapOverlay) {
         return;
       }
 
@@ -1680,7 +1750,7 @@
     }
 
     function updatePosition(dt) {
-      if (state.ui.currentDialogue || state.ui.levelOverlay || state.systems.gameOver) {
+      if (state.ui.currentDialogue || state.ui.levelOverlay || state.ui.mapOverlay || state.systems.gameOver) {
         state.player.frame = 0;
         if (audio) {
           audio.setMovementActive(false, dt);
@@ -1761,7 +1831,7 @@
     }
 
     function trySwitchRoom(spriteSize) {
-      if (!currentGate || state.ui.levelOverlay || state.systems.gameOver || !input.consumePressed("KeyE")) {
+      if (!currentGate || state.ui.levelOverlay || state.ui.mapOverlay || state.systems.gameOver || !input.consumePressed("KeyE")) {
         return;
       }
 
@@ -1864,7 +1934,7 @@
     }
 
     function updateInteractionState() {
-      if (state.ui.levelOverlay || state.systems.gameOver) {
+      if (state.ui.levelOverlay || state.ui.mapOverlay || state.systems.gameOver) {
         return;
       }
 
@@ -1892,6 +1962,7 @@
     function loop(now) {
       const dt = Math.min(0.05, (now - state.animation.lastTime) / 1000);
       state.animation.lastTime = now;
+      handleMapOverlayInput();
 
       if (handleLevelOverlayInput()) {
         updateHud();
@@ -1960,6 +2031,7 @@
           audio.init();
           audio.setRoom(state.room.currentRoomId);
         }
+        hideMapOverlay();
         triggerEvent01();
         setThreat(1);
         updateHud();

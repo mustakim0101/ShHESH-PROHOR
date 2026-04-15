@@ -1266,6 +1266,192 @@ body::after {
   display: grid;
 }
 
+.map-overlay {
+  position: absolute;
+  inset: 0;
+  display: none;
+  place-items: center;
+  background: rgba(2, 2, 8, 0.78);
+  z-index: 29;
+}
+
+.map-overlay.is-active {
+  display: grid;
+}
+
+.map-overlay-card {
+  width: min(92%, 760px);
+  padding: clamp(16px, 2vw, 22px);
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  background:
+    linear-gradient(180deg, rgba(20, 20, 34, 0.94), rgba(8, 8, 18, 0.95)),
+    var(--panel);
+  box-shadow:
+    0 24px 70px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+}
+
+.map-overlay-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.map-overlay-kicker {
+  font-family: "Crimson Pro", serif;
+  font-style: italic;
+  color: rgba(232, 216, 191, 0.76);
+  font-size: clamp(16px, 1.1vw, 20px);
+}
+
+.map-overlay-title {
+  margin-top: 4px;
+  font-family: "Bebas Neue", sans-serif;
+  font-size: clamp(30px, 3.8vw, 46px);
+  letter-spacing: 0.08em;
+  color: #f4f1ea;
+  line-height: 0.95;
+}
+
+.map-overlay-help {
+  color: rgba(231, 231, 245, 0.78);
+  font-size: clamp(12px, 0.95vw, 14px);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  text-align: right;
+}
+
+.map-overlay-visual {
+  position: relative;
+  margin-top: 14px;
+  width: 100%;
+  aspect-ratio: 1440 / 761;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(180deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.2)),
+    url("assets/images/map-concepts/modified map.png") center / cover no-repeat;
+  overflow: hidden;
+}
+
+.map-overlay-location {
+  margin-top: 12px;
+  color: #fff0d6;
+  font-size: clamp(16px, 1.1vw, 20px);
+  letter-spacing: 0.02em;
+}
+
+.map-marker {
+  position: absolute;
+  border-radius: 14px;
+  border: 2px solid rgba(255, 205, 141, 0.36);
+  background: rgba(245, 196, 115, 0.1);
+  box-shadow: inset 0 0 0 1px rgba(255, 205, 141, 0.16);
+  opacity: 0.35;
+  transition: opacity 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.map-marker::before,
+.map-marker::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.map-marker::before {
+  left: 50%;
+  top: 50%;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(circle at 35% 35%, #fff5de 0%, #ffd89b 40%, rgba(255, 196, 97, 0.86) 100%);
+  box-shadow:
+    0 0 0 3px rgba(255, 220, 161, 0.25),
+    0 0 22px rgba(255, 194, 92, 0.8);
+}
+
+.map-marker::after {
+  inset: -6px;
+  border-radius: 18px;
+  border: 2px solid rgba(255, 218, 156, 0.75);
+  box-shadow: 0 0 28px rgba(255, 191, 78, 0.62);
+}
+
+.map-marker.is-active {
+  opacity: 1;
+  border-color: rgba(255, 232, 186, 1);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 239, 205, 0.7),
+    0 0 0 2px rgba(255, 224, 162, 0.32),
+    0 0 34px rgba(255, 195, 86, 0.66);
+  transform: scale(1.03);
+  animation: mapMarkerPulse 1.2s ease-in-out infinite alternate;
+}
+
+.map-marker.is-active::before,
+.map-marker.is-active::after {
+  opacity: 1;
+}
+
+.map-marker.is-active::after {
+  animation: mapMarkerSweep 1.7s ease-out infinite;
+}
+
+@keyframes mapMarkerPulse {
+  0% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+  100% {
+    transform: scale(1.04);
+    filter: brightness(1.18);
+  }
+}
+
+@keyframes mapMarkerSweep {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.12);
+    opacity: 0;
+  }
+}
+
+.map-marker[data-room="kitchen"] {
+  left: 4.5%;
+  top: 25.5%;
+  width: 33%;
+  height: 44%;
+}
+
+.map-marker[data-room="living-room"] {
+  left: 41.5%;
+  top: 26.5%;
+  width: 30.5%;
+  height: 40%;
+}
+
+.map-marker[data-room="children-room"] {
+  left: 41%;
+  top: 2.5%;
+  width: 28.5%;
+  height: 19%;
+}
+
+.map-marker[data-room="basement"] {
+  left: 34.5%;
+  top: 60%;
+  width: 38.5%;
+  height: 27%;
+}
+
 .level-card {
   width: min(86vw, 620px);
   padding: 34px 32px;
@@ -1899,6 +2085,21 @@ body.end-dark {
     width: min(94%, 640px);
     bottom: 10px;
     padding: 18px 18px;
+  }
+
+  .map-overlay-card {
+    width: min(94%, 680px);
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .map-overlay-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .map-overlay-help {
+    text-align: left;
   }
 
   .story-screen {

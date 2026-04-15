@@ -59,6 +59,7 @@
         currentDialogue: null,
         selectedChoiceIndex: 0,
         levelOverlay: null,
+        mapOverlay: false,
       },
       events: {
         activeEventId: "event01",

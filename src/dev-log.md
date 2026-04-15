@@ -1,3 +1,37 @@
+## 2026-04-16 map marker alignment pass
+
+Adjusted only map overlay marker geometry so each highlight box sits on the correct room art block in the apartment map image.
+
+- `style.css`
+  - Repositioned and resized these selectors:
+    - `.map-marker[data-room="kitchen"]`
+    - `.map-marker[data-room="living-room"]`
+    - `.map-marker[data-room="children-room"]`
+    - `.map-marker[data-room="basement"]`
+  - Kept map toggle behavior, room-id mapping, and active pulse/glow effects unchanged.
+
+## 2026-04-16 in-game map overlay (M toggle)
+
+Added a simple in-game apartment map overlay so players can quickly check location during the run.
+
+- `game.html`
+  - Added a map overlay panel inside the game canvas shell, using the existing apartment map image and a location label.
+
+- `style.css`
+  - Added map overlay styles that match the existing glass-panel HUD/dialogue look.
+  - Added room highlight marker boxes for kitchen, living room, bedroom, and basement.
+
+- `src/core/game.js`
+  - Added `M` key toggle logic for opening/closing the map.
+  - Added `Esc` support to close the map.
+  - Added room-id-to-label mapping for:
+    - `living-room -> Living Room`
+    - `kitchen -> Kitchen`
+    - `children-room -> Bedroom`
+    - `basement -> Basement`
+  - Wired active highlight and `Current Location: ...` updates from `state.room.currentRoomId`.
+  - While map is open, movement and interaction input are ignored.
+
 ## 2026-04-16 threat pressure ladder
 
 Added escalating pressure mechanics tied to the HUD threat level so each step adds a new way to rush the player.
@@ -540,4 +574,9 @@ Adjusted the room-transfer landing spots so the player appears on the last visib
 
 - src/core/game.js`r
   - Added a short gateCooldown after each transfer to force a clean arrival position before any new gate can activate.
+
+## 2026-04-16 map basement marker minor adjustment
+
+- style.css
+  - Nudged only `.map-marker[data-room="basement"]` downward by changing `top` from `56.5%` to `60%` to better align with the lower portion of the basement block on the map overlay.
 
