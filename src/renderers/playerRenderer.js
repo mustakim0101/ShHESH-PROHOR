@@ -17,9 +17,9 @@
     rows: 4,
   };
   const CARRIED_YOUNGER_CHILD_SPRITE = {
-    path: "assets/images/characters/mom2.png",
-    frameW: 32,
-    frameH: 48,
+    path: "assets/images/characters/mom1.png",
+    frameW: 64,
+    frameH: 64,
     cols: 4,
     rows: 4,
   };
@@ -394,6 +394,36 @@
     position,
     options = {},
   ) {
+    drawCharacter(
+      context,
+      spriteImage,
+      sprite,
+      animationColumns,
+      direction,
+      frame,
+      position,
+    );
+
+    if (options.carryChildren) {
+      const size = getSpriteSize(sprite);
+      drawCarriedChildren(context, position, size, direction);
+    }
+
+    if (options.showCandle) {
+      const size = getSpriteSize(sprite);
+      drawCarriedCandle(context, position, size, direction, options.candleStrength);
+    }
+  }
+
+  function drawCharacter(
+    context,
+    spriteImage,
+    sprite,
+    animationColumns,
+    direction,
+    frame,
+    position,
+  ) {
     if (!spriteImage) {
       return;
     }
@@ -413,18 +443,11 @@
       size.width,
       size.height,
     );
-
-    if (options.carryChildren) {
-      drawCarriedChildren(context, position, size, direction);
-    }
-
-    if (options.showCandle) {
-      drawCarriedCandle(context, position, size, direction, options.candleStrength);
-    }
   }
 
   window.PlayerRenderer = {
     drawInteractables,
+    drawCharacter,
     drawPlayer,
     drawRoom,
     getSpriteSize,

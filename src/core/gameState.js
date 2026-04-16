@@ -27,6 +27,26 @@
         elapsed: 0,
         frameRequestId: 0,
       },
+      youngerChild: {
+        position: { x: 0, y: 0 },
+        direction: 0,
+        frame: 0,
+        roomId: "children-room",
+        mode: "room",
+        animationElapsed: 0,
+        spriteImage: null,
+        reachedSafeArea: false,
+      },
+      olderChild: {
+        position: { x: 0, y: 0 },
+        direction: 0,
+        frame: 0,
+        roomId: "children-room",
+        mode: "room",
+        animationElapsed: 0,
+        spriteImage: null,
+        reachedSafeArea: false,
+      },
       systems: {
         difficulty: {
           id: difficultyId,

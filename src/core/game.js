@@ -96,6 +96,8 @@
     const canvas = options.canvas;
     const context = canvas.getContext("2d");
     const sprite = { ...window.PlayerConfig.sprite };
+    const childSprite = { ...window.PlayerConfig.childSprite };
+    const olderChildSprite = { ...window.PlayerConfig.olderChildSprite };
     const input = window.InputController.createInputController(window);
     const roomRegistry = window.RoomRegistry;
     const difficultyConfig = window.DifficultyConfig || null;
@@ -1003,9 +1005,140 @@
       gateCooldown = Math.max(0, gateCooldown - dt);
     }
 
+    function getRoomInteractableById(roomId, interactableId) {
+      const room = roomRegistry.getRoom(roomId);
+      if (!room || !Array.isArray(room.interactables)) {
+        return null;
+      }
+      return room.interactables.find((item) => item.id === interactableId) || null;
+    }
+
+    function setYoungerChildPositionFromRatio(xRatio, yRatio, roomId = state.youngerChild.roomId) {
+      const childSize = window.PlayerRenderer.getSpriteSize(childSprite);
+      const nextPosition = {
+        x: xRatio * state.room.bounds.width - childSize.width * 0.5,
+        y: yRatio * state.room.bounds.height - childSize.height * 0.5,
+      };
+
+      state.youngerChild.position = window.MovementController.clampPosition(
+        nextPosition,
+        state.room.bounds,
+        childSize,
+      );
+      state.youngerChild.roomId = roomId;
+    }
+
+    function setOlderChildPositionFromRatio(xRatio, yRatio, roomId = state.olderChild.roomId) {
+      const olderSize = window.PlayerRenderer.getSpriteSize(olderChildSprite);
+      const nextPosition = {
+        x: xRatio * state.room.bounds.width - olderSize.width * 0.5,
+        y: yRatio * state.room.bounds.height - olderSize.height * 0.5,
+      };
+
+      state.olderChild.position = window.MovementController.clampPosition(
+        nextPosition,
+        state.room.bounds,
+        olderSize,
+      );
+      state.olderChild.roomId = roomId;
+    }
+
+    function resetYoungerChildToBedroom() {
+      const interactable = getRoomInteractableById("children-room", "youngerChild");
+      const fallbackX = 0.28;
+      const fallbackY = 0.62;
+
+      setYoungerChildPositionFromRatio(
+        interactable ? interactable.x : fallbackX,
+        interactable ? interactable.y : fallbackY,
+        "children-room",
+      );
+      state.youngerChild.direction = 0;
+      state.youngerChild.frame = 0;
+      state.youngerChild.animationElapsed = 0;
+      state.youngerChild.reachedSafeArea = false;
+    }
+
+    function resetOlderChildToBedroom() {
+      const interactable = getRoomInteractableById("children-room", "olderChild");
+      const fallbackX = 0.6;
+      const fallbackY = 0.61;
+
+      setOlderChildPositionFromRatio(
+        interactable ? interactable.x : fallbackX,
+        interactable ? interactable.y : fallbackY,
+        "children-room",
+      );
+      state.olderChild.direction = 0;
+      state.olderChild.frame = 0;
+      state.olderChild.animationElapsed = 0;
+      state.olderChild.reachedSafeArea = false;
+    }
+
+    function getYoungerChildCenter() {
+      const childSize = window.PlayerRenderer.getSpriteSize(childSprite);
+      return {
+        x: state.youngerChild.position.x + childSize.width * 0.5,
+        y: state.youngerChild.position.y + childSize.height * 0.5,
+      };
+    }
+
+    function getOlderChildCenter() {
+      const olderSize = window.PlayerRenderer.getSpriteSize(olderChildSprite);
+      return {
+        x: state.olderChild.position.x + olderSize.width * 0.5,
+        y: state.olderChild.position.y + olderSize.height * 0.5,
+      };
+    }
+
+    function isYoungerChildVisibleInCurrentRoom() {
+      return state.youngerChild.roomId === state.room.currentRoomId;
+    }
+
+    function isOlderChildVisibleInCurrentRoom() {
+      return state.olderChild.roomId === state.room.currentRoomId;
+    }
+
     function getCurrentInteractables() {
       const room = getCurrentRoom();
-      return room && room.interactables ? room.interactables : [];
+      if (!room || !Array.isArray(room.interactables)) {
+        return [];
+      }
+
+      return room.interactables
+        .map((item) => {
+          if (item.id === "youngerChild") {
+            if (!isYoungerChildVisibleInCurrentRoom()) {
+              return null;
+            }
+
+            const childCenter = getYoungerChildCenter();
+            return {
+              ...item,
+              x: childCenter.x / state.room.bounds.width,
+              y: childCenter.y / state.room.bounds.height,
+            };
+          }
+
+          if (item.id === "olderChild") {
+            if (!isOlderChildVisibleInCurrentRoom()) {
+              return null;
+            }
+
+            const olderChildCenter = getOlderChildCenter();
+            return {
+              ...item,
+              x: olderChildCenter.x / state.room.bounds.width,
+              y: olderChildCenter.y / state.room.bounds.height,
+            };
+          }
+
+          if (item.id !== "youngerChild" && item.id !== "olderChild") {
+            return item;
+          }
+          return null;
+        })
+        .filter(Boolean);
     }
 
     function getPlayerCenter() {
@@ -1017,14 +1150,11 @@
     }
 
     function getNearbyInteractable() {
-      const room = getCurrentRoom();
-      if (!room || !room.interactables) {
-        return null;
-      }
+      const interactables = getCurrentInteractables();
       const playerCenter = getPlayerCenter();
       const minDimension = Math.min(state.room.bounds.width, state.room.bounds.height);
 
-      return room.interactables.find((item) => {
+      return interactables.find((item) => {
         const targetX = state.room.bounds.width * item.x;
         const targetY = state.room.bounds.height * item.y;
         const maxDistance = minDimension * item.radius;
@@ -1140,6 +1270,14 @@
 
     function triggerEvent06() {
       state.events.activeEventId = "event06";
+      if (state.youngerChild.mode !== "follow") {
+        activateYoungerChildFollower();
+        snapYoungerChildBehindMother();
+      }
+      if (state.olderChild.mode !== "follow") {
+        activateOlderChildFollower();
+        snapOlderChildBehindYounger();
+      }
       if (audio) {
         audio.onEvent("event05");
       }
@@ -1157,6 +1295,254 @@
         },
       ]);
       setInteractionHint("Alarm: time is running out and the battery is close to dying. Get the family to the basement and stay in the safe corner.");
+    }
+
+    function activateYoungerChildFollower() {
+      state.youngerChild.mode = "follow";
+      state.youngerChild.roomId = state.room.currentRoomId;
+      state.youngerChild.reachedSafeArea = false;
+      state.events.carryingChildren = false;
+    }
+
+    function activateOlderChildFollower() {
+      state.olderChild.mode = "follow";
+      state.olderChild.roomId = state.room.currentRoomId;
+      state.olderChild.reachedSafeArea = false;
+      state.events.carryingChildren = false;
+    }
+
+    function getYoungerChildFollowTarget() {
+      const playerSize = window.PlayerRenderer.getSpriteSize(sprite);
+      const childSize = window.PlayerRenderer.getSpriteSize(childSprite);
+      const target = {
+        x: state.player.position.x + playerSize.width * 0.5 - childSize.width * 0.5,
+        y: state.player.position.y + playerSize.height * 0.78,
+      };
+
+      if (state.player.direction === 0) {
+        target.y = state.player.position.y - childSize.height * 0.2;
+      } else if (state.player.direction === 1) {
+        target.x = state.player.position.x + playerSize.width * 0.92;
+        target.y = state.player.position.y + playerSize.height * 0.22;
+      } else if (state.player.direction === 2) {
+        target.x = state.player.position.x - childSize.width * 0.92;
+        target.y = state.player.position.y + playerSize.height * 0.22;
+      }
+
+      return window.MovementController.clampPosition(
+        target,
+        state.room.bounds,
+        childSize,
+      );
+    }
+
+    function snapYoungerChildBehindMother() {
+      state.youngerChild.position = getYoungerChildFollowTarget();
+      state.youngerChild.direction = state.player.direction;
+      state.youngerChild.frame = 0;
+      state.youngerChild.animationElapsed = 0;
+    }
+
+    function getOlderChildFollowTarget() {
+      const youngerSize = window.PlayerRenderer.getSpriteSize(childSprite);
+      const olderSize = window.PlayerRenderer.getSpriteSize(olderChildSprite);
+      const leaderDirection = state.youngerChild.direction;
+      const target = {
+        x: state.youngerChild.position.x + youngerSize.width * 0.5 - olderSize.width * 0.5,
+        y: state.youngerChild.position.y + youngerSize.height * 0.98,
+      };
+
+      // Chain follower: older child follows behind the younger child.
+      if (leaderDirection === 0) {
+        target.y = state.youngerChild.position.y - olderSize.height * 0.26;
+      } else if (leaderDirection === 1) {
+        target.x = state.youngerChild.position.x + youngerSize.width * 0.96;
+        target.y = state.youngerChild.position.y + youngerSize.height * 0.2;
+      } else if (leaderDirection === 2) {
+        target.x = state.youngerChild.position.x - olderSize.width * 0.96;
+        target.y = state.youngerChild.position.y + youngerSize.height * 0.2;
+      }
+
+      return window.MovementController.clampPosition(
+        target,
+        state.room.bounds,
+        olderSize,
+      );
+    }
+
+    function snapOlderChildBehindYounger() {
+      state.olderChild.position = getOlderChildFollowTarget();
+      state.olderChild.direction = state.youngerChild.direction;
+      state.olderChild.frame = 0;
+      state.olderChild.animationElapsed = 0;
+      keepOlderChildBehindMother();
+    }
+
+    function keepOlderChildBehindMother() {
+      const playerSize = window.PlayerRenderer.getSpriteSize(sprite);
+      const olderSize = window.PlayerRenderer.getSpriteSize(olderChildSprite);
+      const playerCenter = {
+        x: state.player.position.x + playerSize.width * 0.5,
+        y: state.player.position.y + playerSize.height * 0.5,
+      };
+      const olderCenter = {
+        x: state.olderChild.position.x + olderSize.width * 0.5,
+        y: state.olderChild.position.y + olderSize.height * 0.5,
+      };
+      const facingVectors = [
+        { x: 0, y: 1 },   // down
+        { x: -1, y: 0 },  // left
+        { x: 1, y: 0 },   // right
+        { x: 0, y: -1 },  // up
+      ];
+      const facing = facingVectors[state.player.direction] || facingVectors[0];
+      const frontProgress = ((olderCenter.x - playerCenter.x) * facing.x) + ((olderCenter.y - playerCenter.y) * facing.y);
+      const allowedFrontProgress = 2;
+
+      if (frontProgress > allowedFrontProgress) {
+        const correction = frontProgress - allowedFrontProgress;
+        state.olderChild.position = {
+          x: state.olderChild.position.x - facing.x * correction,
+          y: state.olderChild.position.y - facing.y * correction,
+        };
+        state.olderChild.position = window.MovementController.clampPosition(
+          state.olderChild.position,
+          state.room.bounds,
+          olderSize,
+        );
+      }
+    }
+
+    function updateYoungerChild(dt, playerMovement = { dx: 0, dy: 0, moved: false }) {
+      if (state.youngerChild.mode !== "follow") {
+        state.youngerChild.frame = 0;
+        return;
+      }
+
+      state.youngerChild.roomId = state.room.currentRoomId;
+      const target = getYoungerChildFollowTarget();
+      const deltaX = target.x - state.youngerChild.position.x;
+      const deltaY = target.y - state.youngerChild.position.y;
+      const distance = Math.hypot(deltaX, deltaY);
+      const followSpeed = window.PlayerConfig.speed.walk * 0.92;
+      const maxStep = followSpeed * dt;
+
+      let moveX = 0;
+      let moveY = 0;
+
+      if (distance > 1) {
+        const scale = Math.min(1, maxStep / distance);
+        moveX = deltaX * scale;
+        moveY = deltaY * scale;
+        state.youngerChild.position = {
+          x: state.youngerChild.position.x + moveX,
+          y: state.youngerChild.position.y + moveY,
+        };
+      }
+
+      const moved = Math.hypot(moveX, moveY) > 0.2;
+      const moveDirection = moved
+        ? window.MovementController.getDirection(state.youngerChild.direction, moveX, moveY)
+        : state.player.direction;
+
+      state.youngerChild.direction = moveDirection;
+
+      if (!moved && !playerMovement.moved) {
+        state.youngerChild.frame = 0;
+        state.youngerChild.animationElapsed = 0;
+      } else {
+        state.youngerChild.animationElapsed += dt;
+        const childFpsConfig = window.PlayerConfig.childFps || window.PlayerConfig.fps;
+        const childFps = playerMovement.moved
+          ? window.MovementController.getAnimationFps(input, childFpsConfig)
+          : childFpsConfig.walk;
+        if (state.youngerChild.animationElapsed >= 1 / Math.max(1, childFps)) {
+          const columns = window.PlayerConfig.childAnimationColumns || [4, 4, 4, 4];
+          const maxCols = columns[state.youngerChild.direction] || childSprite.cols;
+          state.youngerChild.frame = (state.youngerChild.frame + 1) % maxCols;
+          state.youngerChild.animationElapsed = 0;
+        }
+      }
+    }
+
+    function updateOlderChild(dt, playerMovement = { dx: 0, dy: 0, moved: false }) {
+      if (state.olderChild.mode !== "follow") {
+        state.olderChild.frame = 0;
+        return;
+      }
+
+      state.olderChild.roomId = state.room.currentRoomId;
+      const target = getOlderChildFollowTarget();
+      const deltaX = target.x - state.olderChild.position.x;
+      const deltaY = target.y - state.olderChild.position.y;
+      const distance = Math.hypot(deltaX, deltaY);
+      const followSpeed = window.PlayerConfig.speed.walk * 0.98;
+      const maxStep = followSpeed * dt;
+
+      let moveX = 0;
+      let moveY = 0;
+
+      if (distance > 1) {
+        const scale = Math.min(1, maxStep / distance);
+        moveX = deltaX * scale;
+        moveY = deltaY * scale;
+        state.olderChild.position = {
+          x: state.olderChild.position.x + moveX,
+          y: state.olderChild.position.y + moveY,
+        };
+      }
+
+      const moved = Math.hypot(moveX, moveY) > 0.2;
+      const moveDirection = moved
+        ? window.MovementController.getDirection(state.olderChild.direction, moveX, moveY)
+        : state.youngerChild.direction;
+
+      state.olderChild.direction = moveDirection;
+      keepOlderChildBehindMother();
+
+      if (!moved && !playerMovement.moved) {
+        state.olderChild.frame = 0;
+        state.olderChild.animationElapsed = 0;
+      } else {
+        state.olderChild.animationElapsed += dt;
+        const olderFpsConfig = window.PlayerConfig.olderChildFps || window.PlayerConfig.childFps || window.PlayerConfig.fps;
+        const olderFps = playerMovement.moved
+          ? window.MovementController.getAnimationFps(input, olderFpsConfig)
+          : olderFpsConfig.walk;
+        if (state.olderChild.animationElapsed >= 1 / Math.max(1, olderFps)) {
+          const columns = window.PlayerConfig.olderChildAnimationColumns || window.PlayerConfig.childAnimationColumns || [4, 4, 4, 4];
+          const maxCols = columns[state.olderChild.direction] || olderChildSprite.cols;
+          state.olderChild.frame = (state.olderChild.frame + 1) % maxCols;
+          state.olderChild.animationElapsed = 0;
+        }
+      }
+    }
+
+    function isChildInSafeCorner(childState, getChildCenterFn) {
+      if (childState.mode !== "follow" || childState.roomId !== "basement") {
+        return false;
+      }
+
+      const safeCorner = getRoomInteractableById("basement", "safeCorner");
+      if (!safeCorner) {
+        return false;
+      }
+
+      const childCenter = getChildCenterFn();
+      const safeX = state.room.bounds.width * safeCorner.x;
+      const safeY = state.room.bounds.height * safeCorner.y;
+      const minDimension = Math.min(state.room.bounds.width, state.room.bounds.height);
+      const safeDistance = minDimension * safeCorner.radius * 1.45;
+
+      return Math.hypot(childCenter.x - safeX, childCenter.y - safeY) <= safeDistance;
+    }
+
+    function isYoungerChildInSafeCorner() {
+      return isChildInSafeCorner(state.youngerChild, getYoungerChildCenter);
+    }
+
+    function isOlderChildInSafeCorner() {
+      return isChildInSafeCorner(state.olderChild, getOlderChildCenter);
     }
 
     function returnToMainMenu() {
@@ -1362,7 +1748,7 @@
       if (state.events.activeEventId === "event06" && state.room.currentRoomId === "basement") {
         completeTask(TASK_IDS.goToBasement);
         if (!state.ui.currentDialogue && !isTaskComplete(TASK_IDS.waitForDawn)) {
-          setInteractionHint("Stay in the safe corner and wait for dawn.");
+          setInteractionHint("Stay in the safe corner and keep both children close.");
         }
       }
 
@@ -1456,7 +1842,7 @@
             completeTask("goToChild");
             openDialogue(COPY.event02);
           } else if (state.events.activeEventId === "event05" && !state.events.completed.event05) {
-            state.events.carryingChildren = true;
+            activateYoungerChildFollower();
             completeTask(TASK_IDS.checkYoungerChildAgain);
             openDialogue(COPY.event05);
           } else {
@@ -1578,13 +1964,21 @@
           }
           break;
         case "safeCorner":
-          if (state.events.activeEventId === "event06" && !state.events.completed.event06 && isTaskComplete(TASK_IDS.goToBasement)) {
+          if (
+            state.events.activeEventId === "event06"
+            && !state.events.completed.event06
+            && isTaskComplete(TASK_IDS.goToBasement)
+            && isYoungerChildInSafeCorner()
+            && isOlderChildInSafeCorner()
+          ) {
             state.events.completed.event06 = true;
+            state.youngerChild.reachedSafeArea = true;
+            state.olderChild.reachedSafeArea = true;
             completeTask(TASK_IDS.waitForDawn);
             applyEndingState();
             beginMorningEnding();
           } else if (state.events.activeEventId === "event06") {
-            setInteractionHint("Get to the basement first, then wait in the safe corner.");
+            setInteractionHint("Stay in the safe corner and make sure both children reach you.");
           } else {
             setInteractionHint("It feels safer here.");
           }
@@ -1755,7 +2149,7 @@
         if (audio) {
           audio.setMovementActive(false, dt);
         }
-        return;
+        return { dx: 0, dy: 0, moved: false };
       }
 
       const vector = window.MovementController.getMovementVector(input.keys);
@@ -1768,7 +2162,7 @@
         if (audio) {
           audio.setMovementActive(false, dt);
         }
-        return;
+        return { dx: 0, dy: 0, moved: false };
       }
 
       const nextDirection = window.MovementController.getDirection(
@@ -1809,6 +2203,8 @@
         state.player.frame = (state.player.frame + 1) % maxCols;
         state.animation.elapsed = 0;
       }
+
+      return { dx, dy, moved: true };
     }
 
     function findActiveGate(spriteSize) {
@@ -1844,6 +2240,14 @@
         spriteSize,
         currentGate.targetRoomId,
       );
+      if (state.youngerChild.mode === "follow") {
+        state.youngerChild.roomId = currentGate.targetRoomId;
+        snapYoungerChildBehindMother();
+      }
+      if (state.olderChild.mode === "follow") {
+        state.olderChild.roomId = currentGate.targetRoomId;
+        snapOlderChildBehindYounger();
+      }
       state.player.frame = 0;
       if (audio) {
         audio.setRoom(currentGate.targetRoomId);
@@ -1916,6 +2320,28 @@
         getCurrentInteractables(),
         nearbyInteractable,
       );
+      if (isOlderChildVisibleInCurrentRoom()) {
+        window.PlayerRenderer.drawCharacter(
+          context,
+          state.olderChild.spriteImage,
+          olderChildSprite,
+          window.PlayerConfig.olderChildAnimationColumns || window.PlayerConfig.childAnimationColumns,
+          state.olderChild.direction,
+          state.olderChild.frame,
+          state.olderChild.position,
+        );
+      }
+      if (isYoungerChildVisibleInCurrentRoom()) {
+        window.PlayerRenderer.drawCharacter(
+          context,
+          state.youngerChild.spriteImage,
+          childSprite,
+          window.PlayerConfig.childAnimationColumns,
+          state.youngerChild.direction,
+          state.youngerChild.frame,
+          state.youngerChild.position,
+        );
+      }
       window.PlayerRenderer.drawPlayer(
         context,
         state.player.spriteImage,
@@ -1925,7 +2351,7 @@
         state.player.frame,
         state.player.position,
         {
-          carryChildren: state.events.carryingChildren && !state.systems.familySafe,
+          carryChildren: false,
           showCandle: state.systems.candleLit,
           candleStrength: state.systems.candleFuel,
         },
@@ -1974,7 +2400,9 @@
       }
 
       handleChoiceInput();
-      updatePosition(dt);
+      const movement = updatePosition(dt);
+      updateYoungerChild(dt, movement);
+      updateOlderChild(dt, movement);
       const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
       updateGateCooldown(dt);
       currentGate = findActiveGate(spriteSize);
@@ -2014,6 +2442,28 @@
 
     function init() {
       const image = new Image();
+      const childImage = new Image();
+      const olderChildImage = new Image();
+
+      childImage.onload = () => {
+        childSprite.sheetW = childImage.width;
+        childSprite.sheetH = childImage.height;
+      };
+      childImage.onerror = () => {
+        console.error("Failed to load younger child sprite sheet:", childSprite.url);
+      };
+      childImage.src = childSprite.url;
+      state.youngerChild.spriteImage = childImage;
+
+      olderChildImage.onload = () => {
+        olderChildSprite.sheetW = olderChildImage.width;
+        olderChildSprite.sheetH = olderChildImage.height;
+      };
+      olderChildImage.onerror = () => {
+        console.error("Failed to load older child sprite sheet:", olderChildSprite.url);
+      };
+      olderChildImage.src = olderChildSprite.url;
+      state.olderChild.spriteImage = olderChildImage;
 
       image.onload = () => {
         sprite.sheetW = image.width;
@@ -2025,6 +2475,8 @@
 
         const spriteSize = window.PlayerRenderer.getSpriteSize(sprite);
         state.player.position = getSpawnPosition({ x: 0.5, y: 0.65 }, spriteSize);
+        resetYoungerChildToBedroom();
+        resetOlderChildToBedroom();
         currentGate = findActiveGate(spriteSize);
 
         if (audio) {
